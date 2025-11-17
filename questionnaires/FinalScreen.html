@@ -1,0 +1,61 @@
+{{ block title }}
+    Final Screen
+{{ endblock }}
+
+
+{{ block content }}
+
+    <p>
+        Below, you see all end-of-round budgets in ECU and Euro: 
+    </p>
+
+    <ul>
+    {% for round in game_rounds %}
+        <li>Round {{ round.round }}: ECU earnings: {{ round.ecu_earnings }}, Euro earnings: {{ round.eur_earnings|to2 }}</li>
+    {% empty %}
+        <li>No rounds played.</li>
+    {% endfor %}
+    </ul>
+
+    <p>
+        The computer randomly picked Round {{ player.selected_round }} for your payment. <br>
+        {{ if round_payment_negative }}
+            You lost money in the selected round. Therefore, you only receive the completion fee of {{ participation_fee }}.
+        {{ else }}
+            Your total payment is {{ player.eur_earnings|to2 }} EUR plus the completion fee of {{ participation_fee }}, i.e., <b>{{ final_payment }}</b>.
+        {{ endif }}
+    </p>
+    <p>
+        For the payment, you will provide your payment details on a secure, GDPR-compliant server which keeps your data separate from the information recorded as part of this study.
+    </p>
+    <p>
+        After filling-in the payment form, you will receive a confirmation code. Enter the code on this page to finalize the experiment.
+    </p>
+    <p>
+        <a class="btn btn-primary" href="{{ payment_link }}" target="_blank" id="payment_link">Go to Payment Form</a>
+    </p>
+
+    <div id="payment_box">
+        {{ formfield 'payment_code' label="Please enter the confirmation code you received after entering your payment details:" }}
+        <p>
+            Thank you very much for participating in this experiment!
+        </p>
+    
+        {{ next_button }}
+    </div>
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    const nextButton = document.getElementsByClassName('otree-btn-next')[0];
+    const paymentLink = document.getElementById('payment_link');
+    const paymentBox = document.getElementById('payment_box');
+    
+    nextButton.innerText = "Finish Experiment";
+    paymentBox.style.display = 'none';
+    
+    paymentLink.addEventListener('click', function(event) {
+        paymentBox.style.display = 'block';
+    });
+</script>
+{{ endblock scripts }}
