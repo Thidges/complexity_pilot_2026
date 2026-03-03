@@ -148,7 +148,7 @@ class GameInstructions(Page):
         }
 
 page_sequence = [
-    FigureDemo, 
+    # FigureDemo, 
     Welcome,
     ConsentRadboud, 
     GameInstructions

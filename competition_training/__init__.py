@@ -184,5 +184,5 @@ class TrainingFeedback(Page):
 
 page_sequence = [
     TrainingRound, 
-    TrainingFeedback
+    # TrainingFeedback
 ]

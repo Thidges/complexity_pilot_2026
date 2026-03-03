@@ -115,6 +115,20 @@ SESSION_CONFIGS = [
         num_demo_participants=1,
         **GAME_CONFIG
     ),
+    dict(
+        name="full_experiment",
+        display_name="Full Experiment",
+        app_sequence=[
+            "intro",
+            "competition_training",
+            "ring_comp_middleman",
+            "questionnaires"
+        ],
+        num_demo_participants=4,
+        **COMPETITION_TRAINING_CONFIG,
+        **GAME_CONFIG,
+        **COMP_DEMO
+    )
 ]
 
 # Rooms
