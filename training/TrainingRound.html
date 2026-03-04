@@ -39,7 +39,7 @@
                         <button type="button" class="btn btn-primary" id="request_btn">Request a Unit</button>
                     </div>
                     <div class="info_box text-center" id="predecessor_info">
-                        <span id="predecesor_transfer_status"></span><br>
+                        <span id="predecessor_transfer_status"></span><br>
                         <span id="predecessor_transfer_units"></span>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Card 2 -->
         <div class="col">
             <div class="card vertical-space">
@@ -72,7 +72,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Card 3 -->
         <div class="col">
             <div class="card vertical-space">
@@ -81,13 +81,13 @@
                 </h4>
                 <div class="card-body outer_box">
                     <div class="info_box text-center" id="successor_info">
-                        <span id="succesor_transfer_status"></span><br>
+                        <span id="successor_transfer_status"></span><br>
                         <span id="successor_transfer_units"></span><br>
                         <span id="successor_transfer_cash"></span>
                     </div>
                 </div>
                 <div class="card-footer text-muted text-center">
-                    >>> 
+                    >>>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@
             <p class="small">Your position is highlighted in gray.</p>
         </div>
     {{ endif }}
-    
+
     {{ formfields }}
     {{ next_button }}
 {{ endblock }}
@@ -110,13 +110,13 @@
     function boxMullerTransform() {
         const u1 = Math.random();
         const u2 = Math.random();
-        
+
         const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
         const z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
-        
+
         return { z0, z1 };
     }
-    
+
     function getNormallyDistributedRandomNumber(mean, stddev) {
         const { z0, _ } = boxMullerTransform();
         return z0 * stddev + mean;
@@ -133,29 +133,35 @@
     // const totalProfitDisplay = document.getElementById("total_profit_display");
     const predecessor1Info = document.getElementById("predecessor_info");
     const successor1Info = document.getElementById("successor_info");
-    const predecessor1TransferStatus = document.getElementById("predecesor_transfer_status");
+    const predecessor1TransferStatus = document.getElementById("predecessor_transfer_status");
     const predecessor1TransferUnits = document.getElementById("predecessor_transfer_units");
-    const successor1TransferStatus = document.getElementById("succesor_transfer_status");
+    const successor1TransferStatus = document.getElementById("successor_transfer_status");
     const successor1TransferUnits = document.getElementById("successor_transfer_units");
     const successor1TransferCash = document.getElementById("successor_transfer_cash");
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
     const nextButton = document.getElementsByClassName("otree-btn-next")[0];
-    
+
     const initialSupply = 2;
     const maxSupply = 3;
     const supplyIncreaseInterval = 2000; // in milliseconds
     const supplyIncreaseAmount = 1; // amount to increase supply by each interval
-    
+    requestButton.innerHTML = `Request a Unit (-${js_vars.inventory_click_price} ECU)`;
+
     // setup supply
     let supply = initialSupply;
+    // bot setup
+    let botInventory = 2;
+    let receivedLastRequest = true;
+    const tryNewBotSystem = true;
+
     // every second, supply increases by 1 until it reaches 3
     window.setInterval(function() {
         if (supply < maxSupply) {
             supply += supplyIncreaseAmount;
         }
     }, supplyIncreaseInterval);
-    
+
     function get_item_from_predecessor(units) {
         if (supply > 0 && units <= supply) {
             supply -= units;
@@ -164,18 +170,18 @@
             return false;
         }
     }
-    
+
     // setup next button
     nextButton.style.display = "none";
     nextButton.classList.remove("btn-primary");
     nextButton.classList.add("btn-danger");
     nextButton.innerText = "Leave the training round";
     requestButton.disabled = true;
-    
+
     window.setTimeout(function() {
         nextButton.style.display = "block";
     }, (js_vars.training_start_delay_seconds + js_vars.allow_training_leave_seconds) * 1000);
-    
+
     // setup timers
     let currentDate = new Date();
     let remainingTimeoutSeconds = {{ view.remaining_timeout_seconds()|json }};
@@ -201,7 +207,7 @@
         requestButton.disabled = false;
         start_game();
     }
-    
+
     let mydata = {
         "inventory": js_vars.inventory,
         "balance": js_vars.balance,
@@ -210,32 +216,39 @@
         "total_profit": js_vars.total_profit,
         "total_items_sold": js_vars.total_items_sold,
     };
-    
+
     function start_game() {
-        random_request(5, 2)
-        
+        if (!tryNewBotSystem)
+            random_request(5, 2)
+        else {
+            activateBotDecliningInventory();
+            request_inventory_based();
+        }
+
         window.setInterval(function () {
             recalculate_balances();
             update_display();
         }, 1000);
     }
-    
+
     function timeout_request_button(timeout_seconds) {
         requestButton.disabled = true;
         requestButton.innerHTML = "Please Wait";
         setTimeout(function() {
             requestButton.disabled = false;
-            requestButton.innerHTML = "Request a Unit";
+            requestButton.innerHTML = `Request a Unit (-${js_vars.inventory_click_price} ECU)`;
         }, timeout_seconds * 1000);
     }
-    
+
     function update_receiver_data(transferred, units) {
+        mydata.balance -= js_vars.inventory_click_price;
+        mydata.total_cost += js_vars.inventory_click_price;
         if (transferred) {
             mydata.inventory += units;
-        } 
+        }
         update_display();
     }
-    
+
     function get_request() {
         if (mydata.inventory > 0) {
             mydata.inventory -= 1;
@@ -248,7 +261,7 @@
         }
         return false;
     }
-    
+
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory + " units";
         balanceDisplay.innerHTML = mydata.balance.toFixed(0) + " ECU";
@@ -263,11 +276,11 @@
         if (data['to_player'] === js_vars.own_id_in_group) {
             update_receiver_data(data);
             highlight_predecessor(
-                data['transferred'], 
-                data['units'], 
+                data['transferred'],
+                data['units'],
                 js_vars.info_highlight_timeout_seconds
             );
-            
+
         }
         // I send the unit
         if (data['from_player'] === js_vars.own_id_in_group) {
@@ -287,7 +300,7 @@
             let to_player_l = document.getElementById("p" + data['to_player'] + "_left");
             from_player_inventory.textContent = data['from_inventory'];
             to_player_inventory.textContent = data['to_inventory'];
-            
+
             let color = data['transferred'] ? "#648FFF" : "#FFB000";
             from_player_r.setAttribute("fill", color);
             to_player_l.setAttribute("fill", color);
@@ -297,18 +310,18 @@
             }, js_vars.info_highlight_timeout_seconds * 1000);
         }
     }
-    
+
     function send_request(predecessor, units) {
         let transferred = get_item_from_predecessor(units)
         update_receiver_data(transferred, units);
         highlight_predecessor(
             predecessor,
-            transferred, 
-            units, 
+            transferred,
+            units,
             js_vars.info_highlight_timeout_seconds
         );
     }
-    
+
 
     function recalculate_balances() {
         let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second;
@@ -316,13 +329,13 @@
         mydata.total_cost += cost;
         mydata.total_profit = mydata.total_revenue - mydata.total_cost;
     }
-    
+
     requestButton.addEventListener("click", function () {
         send_request(1, 1);
         timeout_request_button(js_vars.request_button_timeout_seconds);
     });
-    
-    
+
+
     function random_request(mean, stdev) {
         let random = getNormallyDistributedRandomNumber(mean, stdev);
         window.setTimeout(function() {
@@ -330,16 +343,58 @@
             let successor = 1;
             highlight_successor(
                 successor,
-                result, 
-                1, 
+                result,
+                1,
                 js_vars.inventory_unit_price,
                 js_vars.info_highlight_timeout_seconds
             );
             random_request(mean, stdev);
         }, random * 1000);
     }
-    
-    
+
+    // where key: (inventory, gotSupplyLastRequest)
+    // where value: (meanWaiting, stdDevWaiting)
+    const botCooldowns = {
+        0:  { false: [2.00, 0.20],  true: [3.60, 0.30] },
+        1:  { false: [4.00, 0.40],  true: [4.80, 0.50] },
+        2:  { false: [5.00, 0.50],  true: [6.20, 0.70] },
+        3:  { false: [6.00, 0.70],  true: [7.80, 1.00] },
+        4:  { false: [7.20, 0.90],  true: [9.60, 1.30] },
+        5:  { false: [8.80, 1.20],  true: [11.60, 1.70] },
+        6:  { false: [10.60, 1.50], true: [14.00, 2.20] },
+        7:  { false: [12.60, 1.90], true: [16.80, 2.60] },
+        8:  { false: [15.00, 2.30], true: [20.00, 3.20] },
+        9:  { false: [18.00, 2.80], true: [25.00, 4.00] },
+        10: { false: [22.00, 3.60], true: [32.00, 5.00] } // 10 or higher
+    }
+
+    function request_inventory_based() {
+        const formattedInv = Math.max(0, Math.min(botInventory, 10));
+        const [mean, stddev] = botCooldowns[formattedInv][receivedLastRequest]
+
+        let random = getNormallyDistributedRandomNumber(mean, stddev);
+        window.setTimeout(function() {
+            let result = get_request();
+            botInventory += result;
+            receivedLastRequest = result >= 1
+            let successor = 1;
+            highlight_successor(
+                successor,
+                result,
+                1,
+                js_vars.inventory_unit_price,
+                js_vars.info_highlight_timeout_seconds
+            );
+            request_inventory_based();
+        }, random * 1000);
+    }
+
+    function activateBotDecliningInventory() {
+         window.setTimeout(function() {
+             botInventory -= 1;
+             activateBotDecliningInventory();
+        }, 8000);
+    }
 </script>
 
 <script src="{{ static 'chain/draw.js' }}"></script>

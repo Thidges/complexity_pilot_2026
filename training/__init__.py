@@ -20,6 +20,7 @@ class Subsession(BaseSubsession):
     initial_cash = models.FloatField()
     cost_per_second = models.FloatField()
     price_per_unit = models.FloatField()
+    price_per_click = models.FloatField()
     show_chain = models.BooleanField(initial=False)
     transfer_probability = models.FloatField()
 
@@ -54,6 +55,7 @@ def creating_session(subsession):
     initial_cash = sess.config.get('training_initial_cash', None)
     cost_per_second = sess.config.get('training_cost_per_second', None)
     price_per_unit = sess.config.get('training_price_per_unit', None)
+    price_per_click = sess.config.get('training_price_per_click', None)
     show_chain = sess.config.get('training_show_chain', False)
     transfer_probability = sess.config.get('training_transfer_probability', None)
     
@@ -65,7 +67,7 @@ def creating_session(subsession):
     total_seconds = start_delay_seconds + round_seconds
 
     if any(var is None for var in
-           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit,
+           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, price_per_click,
             show_chain, transfer_probability, start_delay_seconds, leave_seconds, round_seconds, request_timeout_seconds,info_highlight_timeout_seconds]):
         raise ValueError("session not configured correctly")
 
@@ -74,6 +76,7 @@ def creating_session(subsession):
     subsession.initial_cash = initial_cash
     subsession.cost_per_second = cost_per_second
     subsession.price_per_unit = price_per_unit
+    subsession.price_per_click = price_per_click
     subsession.show_chain = show_chain
     subsession.transfer_probability = transfer_probability
 
@@ -156,6 +159,7 @@ class TrainingRound(Page):
             'request_button_timeout_seconds': subs.request_timeout_seconds,
             'inventory_unit_cost_per_second': subs.cost_per_second,
             'inventory_unit_price': subs.price_per_unit,
+            'inventory_click_price': subs.price_per_click,
             **common_vars_for_template(player),
         }
 
