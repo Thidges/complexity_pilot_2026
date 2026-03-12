@@ -165,6 +165,7 @@
     // bot setup
     let botInventory = 2;
     let receivedLastRequest = true;
+    let successorActivated = false;
     const tryNewBotSystem = true;
 
     // every second, supply increases by 1 until it reaches 3
@@ -233,8 +234,12 @@
         if (!tryNewBotSystem)
             random_request(5, 2)
         else {
-            activateBotDecliningInventory();
-            request_inventory_based();
+            setTimeout(function() {
+                if (successorActivated) return;
+                activateBotDecliningInventory();
+                request_inventory_based();
+                successorActivated = true;
+            }, Math.floor(Math.random() * 10_000) + 200) // timeout between 0.2 and 10.2 seconds
         }
 
         window.setInterval(function () {
@@ -248,7 +253,7 @@
         requestButton.innerHTML = "Please Wait";
         setTimeout(function() {
             requestButton.disabled = false;
-            requestButton.innerHTML = `Request a Unit (-${js_vars.inventory_click_price} ECU)`;
+             requestButton.innerHTML = js_vars.inventory_click_price > 0 ? `Request a Unit (-${js_vars.inventory_click_price} ECU)` : 'Request a Unit';
         }, timeout_seconds * 1000);
     }
 
@@ -332,6 +337,11 @@
     }
 
     function send_request(predecessor, units) {
+        if (!successorActivated) {
+            activateBotDecliningInventory();
+            request_inventory_based();
+            successorActivated = true;
+        }
         let transferred = get_item_from_predecessor(units)
         update_receiver_data(transferred, units);
         highlight_predecessor(
@@ -412,7 +422,8 @@
 
     function activateBotDecliningInventory() {
          window.setTimeout(function() {
-             botInventory -= 1;
+             if (botInventory > 0)
+                botInventory -= 1;
              activateBotDecliningInventory();
         }, 8000);
     }
