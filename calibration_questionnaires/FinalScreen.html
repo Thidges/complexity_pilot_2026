@@ -6,12 +6,12 @@
 {{ block content }}
 
     <p>
-        You earned {{ ecu_earnings }} in the task. This corresponds to ${{ usd_earnings|to2 }}.<br>
+        You earned {{ ecu_earnings }} in the task. This corresponds to {{ rwc_earnings }}.<br>
         In addition, you receive a completion fee of {{ participation_fee }}.
     </p>
 
     <p>
-        Your total payment is {{ final_payment|to2 }} USD.
+        Your total payment is {{ final_payment }}.
     </p>
 
     {{ if prolific_url }}

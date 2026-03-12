@@ -82,7 +82,7 @@ ROOMS = []
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=0.0005, participation_fee=5.00, doc="", prolific_completion_url=""
+    real_world_currency_per_point=0.0008, participation_fee=1.5, doc="", prolific_completion_url=""
 )
 
 PARTICIPANT_FIELDS = ['finished', 'ecu_earnings']
@@ -93,7 +93,7 @@ SESSION_FIELDS = []
 LANGUAGE_CODE = 'en'
 
 # e.g. EUR, GBP, CNY, JPY
-REAL_WORLD_CURRENCY_CODE = 'USD'
+REAL_WORLD_CURRENCY_CODE = 'GBP'
 USE_POINTS = True
 POINTS_CUSTOM_NAME = 'ECU'
 

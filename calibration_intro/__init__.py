@@ -1,6 +1,6 @@
 from otree.api import *
 from datetime import datetime
-from otree.settings import DEBUG
+from otree.settings import DEBUG, REAL_WORLD_CURRENCY_CODE
 
 doc = """
 Your app description
@@ -98,9 +98,12 @@ class GameInstructions(Page):
         ecu_earn = sess.config.get('price_per_unit', 10)
         ecu_inventory_cost = sess.config.get('cost_per_second', 5)
         ecu_request_cost = sess.config.get('cost_per_request', 2)
-        
+
+        round_seconds = sess.config.get('round_seconds', 30)
+        round_minutes = round_seconds/60
+
         return {
-            'exchange_rate': f"100 ECU = {hundred_ecu:.2f} USD",
+            'exchange_rate': f"100 ECU = {hundred_ecu:.2f} {REAL_WORLD_CURRENCY_CODE}",
             'num_participants': players_per_group if show_chain else "several",
             'show_chain': show_chain,
             'DEBUG': DEBUG,
@@ -109,7 +112,8 @@ class GameInstructions(Page):
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,
             'ecu_request_cost': ecu_request_cost,
-            'round_seconds': sess.config.get('round_seconds', 30),
+            'round_seconds': round_seconds,
+            'round_minutes': round_minutes
         }
     
     
