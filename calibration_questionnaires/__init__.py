@@ -1,5 +1,5 @@
 from otree.api import *
-
+from otree.settings import DEBUG
 
 doc = """
 Your app description
@@ -26,6 +26,13 @@ class Player(BasePlayer):
 
 
 # PAGES
+def creating_session(subsession):
+    if subsession.session.is_demo:
+        return
+    if not subsession.session.config.get("prolific_completion_url", False):
+        raise ValueError("You must set the Prolific Completion URL in the session config!")
+
+
 class Questionnaire(Page):
     form_model = 'player'
     form_fields = ['strategy_text', 'comments']
@@ -50,7 +57,7 @@ class FinalScreen(Page):
             'final_payment': pppf,
             'ecu_earnings': ecu_earnings,
             'usd_earnings': usd_earnings,
-            'prolific_url': sess.config.get('prolific_url', '')
+            'prolific_url': sess.config.get('prolific_completion_url', '')
         }
     
     def before_next_page(player, timeout_happened):
