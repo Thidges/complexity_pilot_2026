@@ -36,7 +36,9 @@
         <li>You start with {{ ecu_endowment }} ECUs.</li> 
         <li>You earn {{ ecu_earn }} ECUs every time your successor receives a unit from you.</li>
         <li>You must pay {{ ecu_inventory_cost }} ECU every second for each unit in your inventory, i.e., holding inventory is costly.</li>
-        <li>You must pay {{ ecu_request_cost }} for every request you make to your predecessor, irrespective of whether it results in you receiving a unit or not.</li>
+        {{ if ecu_request_cost > 0 }}
+            <li>You must pay {{ ecu_request_cost }} ECU for every request you make to your predecessor, irrespective of whether it results in you receiving a unit or not.</li>
+        {{ endif }}
         <li>Your ECU balance adjusts accordingly. Technically, it can go negative, but you can also recover.</li>
     </ul>
 
@@ -45,9 +47,10 @@
     </p>
 
     <p>
-        Please answer the following questions before continuing:
+        <b>Please answer the following questions before continuing:</b>
     </p>
 
+    {{ formfields }}
     {{ next_button }}
 
 {{ endblock }}

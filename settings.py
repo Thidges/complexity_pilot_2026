@@ -29,7 +29,7 @@ SESSION_CONFIGS = [
     #     display_name="Main Task",
     #     app_sequence=["calibration_main"],
     #     num_demo_participants=1,
-    #     price_per_click=1,
+    #     cost_per_click=1,
     #     **GAME_CONFIG,
     # ),
     # dict(
@@ -44,7 +44,7 @@ SESSION_CONFIGS = [
         display_name="Setting 1: Request Cost 0",
         app_sequence=["calibration_intro", "calibration_main", "calibration_questionnaires"],
         num_demo_participants=1,
-        price_per_click=0,
+        cost_per_click=0,
         **GAME_CONFIG
     ),
     dict(
@@ -52,7 +52,7 @@ SESSION_CONFIGS = [
         display_name="Setting 2: Request Cost 1",
         app_sequence=["calibration_intro", "calibration_main", "calibration_questionnaires"],
         num_demo_participants=1,
-        price_per_click=1,
+        cost_per_click=1,
         **GAME_CONFIG
     ),
 dict(
@@ -60,7 +60,7 @@ dict(
         display_name="Setting 3: Request Cost 25",
         app_sequence=["calibration_intro", "calibration_main", "calibration_questionnaires"],
         num_demo_participants=1,
-        price_per_click=25,
+        cost_per_click=25,
         **GAME_CONFIG
     ),
     dict(
@@ -68,7 +68,7 @@ dict(
         display_name="Setting 4: Request Cost 50",
         app_sequence=["calibration_intro", "calibration_main", "calibration_questionnaires"],
         num_demo_participants=1,
-        price_per_click=50,
+        cost_per_click=50,
         **GAME_CONFIG
     ),
 ]

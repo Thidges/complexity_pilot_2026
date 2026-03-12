@@ -18,7 +18,7 @@ class Subsession(BaseSubsession):
     initial_cash = models.FloatField()
     cost_per_second = models.FloatField()
     price_per_unit = models.FloatField()
-    price_per_click = models.FloatField()
+    cost_per_click = models.FloatField()
     maximum_units = models.IntegerField()
     show_chain = models.BooleanField(initial=False)
     transfer_probability = models.FloatField()
@@ -59,7 +59,7 @@ def creating_session(subsession):
     initial_cash = sess.config.get('initial_cash', None)
     cost_per_second = sess.config.get('cost_per_second', None)
     price_per_unit = sess.config.get('price_per_unit', None)
-    price_per_click = sess.config.get('price_per_click', None)
+    cost_per_click = sess.config.get('cost_per_click', None)
     maximum_units = sess.config.get('maximum_units_in_play', None)
     show_chain = sess.config.get('show_chain', False)
 
@@ -71,7 +71,7 @@ def creating_session(subsession):
     total_seconds = start_delay_seconds + round_seconds
 
     if any(var is None for var in
-           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, price_per_click, maximum_units,
+           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, cost_per_click, maximum_units,
             show_chain, start_delay_seconds, leave_seconds, round_seconds, request_timeout_seconds,info_highlight_timeout_seconds]):
         raise ValueError("session not configured correctly")
 
@@ -80,7 +80,7 @@ def creating_session(subsession):
     subsession.initial_cash = initial_cash
     subsession.cost_per_second = cost_per_second
     subsession.price_per_unit = price_per_unit
-    subsession.price_per_click = price_per_click
+    subsession.cost_per_click = cost_per_click
     subsession.maximum_units = maximum_units
     subsession.show_chain = show_chain
 
@@ -159,7 +159,7 @@ class Task(Page):
             'request_button_timeout_seconds': subs.request_timeout_seconds,
             'inventory_unit_cost_per_second': subs.cost_per_second,
             'inventory_unit_price': subs.price_per_unit,
-            'inventory_click_price': subs.price_per_click,
+            'inventory_click_price': subs.cost_per_click,
             'maximum_units': subs.maximum_units,
             **common_vars_for_template(player),
         }
