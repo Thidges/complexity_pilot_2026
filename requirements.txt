@@ -1,2 +1,2 @@
-otree==5.11.1
+otree==6.0.12
 psycopg2-binary==2.9.10
