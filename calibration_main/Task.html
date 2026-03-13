@@ -109,9 +109,9 @@
     <input type="hidden" id="id_total_inventory_cost" name="total_inventory_cost" value="">
     <input type="hidden" id="id_total_items_sold" name="total_items_sold" value="">
 
-    {{ if DEBUG }}
-        {{ next_button }}
-    {{ endif }}
+
+    {{ next_button }}
+
 {{ endblock }}
 
 
@@ -150,6 +150,7 @@
     const successor1TransferCash = document.getElementById("successor_transfer_cash");
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
+
     const nextButton = document.getElementsByClassName("otree-btn-next")[0];
     
     const totalRevenueInput = document.getElementById("id_total_revenue");
@@ -187,8 +188,14 @@
     }
 
     // setup next button
-    nextButton.classList.remove("btn-primary");
-    nextButton.classList.add("btn-danger");
+    if (js_vars.DEBUG) {
+        nextButton.classList.remove("btn-primary");
+        nextButton.classList.add("btn-danger");
+    } else {
+        // if not in debug, hide nextButton
+        nextButton.style.display = "none";
+    }
+
     requestButton.disabled = true;
 
     // should not allow people to leave in the calibration game
