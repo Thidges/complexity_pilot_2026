@@ -6,8 +6,6 @@ class PlayerBot(Bot):
         yield Consent, {
             'confirm_read_understood': True,
             'voluntary_participation': True,
-            'data_access_by_authorities': True,
-            'data_anonymity': True,
             'data_publication': True,
             'future_research_use': True,
             'agree_to_participate': True,

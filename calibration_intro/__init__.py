@@ -24,12 +24,9 @@ class Group(BaseGroup):
 class Player(BasePlayer):
     confirm_read_understood = models.BooleanField(widget=widgets.CheckboxInput)
     voluntary_participation = models.BooleanField(widget=widgets.CheckboxInput)
-    data_access_by_authorities = models.BooleanField(widget=widgets.CheckboxInput)
-    data_anonymity = models.BooleanField(widget=widgets.CheckboxInput)
     data_publication = models.BooleanField(widget=widgets.CheckboxInput)
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
-    confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
 
     comp_request_cost = models.IntegerField(label="Assume you make 5 requests of which 3 are successful and 2 are not successful. How many ECU did it cost to make these 5 requests?")
     comp_inventory_cost = models.IntegerField(label="Assume you hold 2 units in inventory for 2 seconds. How many ECU did it cost to hold this inventory?")
@@ -66,8 +63,6 @@ class Consent(Page):
     form_fields = [
         'confirm_read_understood',
         'voluntary_participation',
-        'data_access_by_authorities',
-        'data_anonymity',
         'data_publication',
         'future_research_use',
         'agree_to_participate'
@@ -77,8 +72,6 @@ class Consent(Page):
         required_checks = [
             'confirm_read_understood',
             'voluntary_participation',
-            'data_access_by_authorities',
-            'data_anonymity',
             'data_publication',
             'future_research_use',
             'agree_to_participate',
@@ -90,7 +83,6 @@ class Consent(Page):
     
     def vars_for_template(player):
         return {
-            'consent_date': datetime.now().strftime("%Y-%m-%d"),
             'participation_fee': player.session.config.get('participation_fee', '0.00 EUR')
         }
 
