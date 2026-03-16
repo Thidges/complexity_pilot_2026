@@ -4,9 +4,13 @@
 
 {{ block content }}
     <p>
-        You started with {{ subsession.initial_cash }} ECU,<br>
-        delivered {{ player.total_items_sold }} items to your successor, earning a total of {{ player.total_revenue }},<br>
-        paid {{ player.total_request_cost }} for requests, and <br>
+        You started with {{ subsession.initial_cash|to0 }} ECU,<br>
+        {{ if ecu_request_cost > 0 }}
+            delivered {{ player.total_items_sold }} items to your successor, earning a total of {{ player.total_revenue }},<br>
+            paid {{ player.total_request_cost }} for requests, and <br>
+        {{ else }}
+            delivered {{ player.total_items_sold }} items to your successor, earning a total of {{ player.total_revenue }}, and<br>
+        {{ endif }}
         paid {{ player.total_inventory_cost }} for your inventory.
     </p>
     

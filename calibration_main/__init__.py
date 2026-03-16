@@ -178,7 +178,8 @@ class Task(Page):
         player.participant.ecu_earnings = player.ecu_earnings
     
 class Summary(Page):
-    pass
+    def vars_for_template(player):
+        return {'ecu_request_cost': player.session.config.get('cost_per_click', 2)}
 
 page_sequence = [
     Preface,
