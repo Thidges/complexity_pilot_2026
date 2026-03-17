@@ -174,9 +174,10 @@ class Task(Page):
         }
     
     def before_next_page(player, timeout_happened):
-        player.ecu_earnings = player.subsession.initial_cash + player.total_revenue - player.total_inventory_cost - player.total_request_cost
+        player.ecu_earnings = cu(player.subsession.initial_cash + player.total_revenue - player.total_inventory_cost - player.total_request_cost)
         player.participant.ecu_earnings = player.ecu_earnings
-    
+
+
 class Summary(Page):
     def vars_for_template(player):
         return {'ecu_request_cost': player.session.config.get('cost_per_click', 2)}
