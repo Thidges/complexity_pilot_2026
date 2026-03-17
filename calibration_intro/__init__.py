@@ -28,13 +28,13 @@ class Player(BasePlayer):
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
 
-    comp_request_cost = models.IntegerField(label="Assume you make 5 requests of which 3 are successful and 2 are not successful. How many ECU did it cost to make these 5 requests?")
+    comp_request_cost = models.IntegerField(label="Assume you make 2 requests of which 1 is successful and 1 is not successful. How many ECU did it cost to make these 2 requests?")
     comp_inventory_cost = models.IntegerField(label="Assume you hold 2 units in inventory for 2 seconds. How many ECU did it cost to hold this inventory?")
     comp_revenue = models.IntegerField(label="Assume you have 1 unit in your inventory. Your successor requests 1 unit from you. How many ECU do you earn from the transfer?")
 
 # Functions
 def comp_request_cost_error_message(player, value):
-    actual_cost = player.session.config.get('cost_per_click', 0) * 5
+    actual_cost = player.session.config.get('cost_per_click', 0) * 2
     if value < actual_cost:
         return "Check your calculation! The request cost you entered is too low."
     if value > actual_cost:
