@@ -24,14 +24,14 @@ SESSION_CONFIGS = [
     #     num_demo_participants=1,
     #     **GAME_CONFIG
     # ),
-    # dict(
-    #     name="calibration_main",
-    #     display_name="Main Task",
-    #     app_sequence=["calibration_main"],
-    #     num_demo_participants=1,
-    #     cost_per_click=1,
-    #     **GAME_CONFIG,
-    # ),
+    dict(
+        name="calibration_main",
+        display_name="Main Task",
+        app_sequence=["calibration_main"],
+        num_demo_participants=1,
+        cost_per_click=1,
+        **GAME_CONFIG,
+    ),
     # dict(
     #     name="calibration_questionnaires",
     #     display_name="Final Questionnaire / Payments",

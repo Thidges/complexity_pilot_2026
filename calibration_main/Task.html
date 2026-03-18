@@ -168,9 +168,12 @@
     let supply = initialSupply;
     // bot setup
     let botInventory = 2;
-    let receivedLastRequest = true;
+    let successRate = 0.5;   // rolling EMA of success (0..1); starts neutral
+    const alpha = 0.1;       // smoothing factor: ~last 10 requests weighted
     let successorActivated = false;
     const tryNewBotSystem = true;
+    let botLastRequestTime = null; // timestamp of last bot request (ms)
+
 
     // every second, supply increases by 1 until it reaches 3
     window.setInterval(function() {
@@ -393,31 +396,57 @@
         }, random * 1000);
     }
 
-    // where key: (inventory, gotSupplyLastRequest)
+    // where key: (inventory, successRateAboveThreshold)
     // where value: (meanWaiting, stdDevWaiting)
-    const botCooldowns = {
-        0:  { false: [2.00, 0.20],  true: [3.60, 0.30] },
-        1:  { false: [4.00, 0.40],  true: [4.80, 0.50] },
-        2:  { false: [5.00, 0.50],  true: [6.20, 0.70] },
-        3:  { false: [6.00, 0.70],  true: [7.80, 1.00] },
-        4:  { false: [7.20, 0.90],  true: [9.60, 1.30] },
-        5:  { false: [8.80, 1.20],  true: [11.60, 1.70] },
-        6:  { false: [10.60, 1.50], true: [14.00, 2.20] },
-        7:  { false: [12.60, 1.90], true: [16.80, 2.60] },
-        8:  { false: [15.00, 2.30], true: [20.00, 3.20] },
-        9:  { false: [18.00, 2.80], true: [25.00, 4.00] },
-        10: { false: [22.00, 3.60], true: [32.00, 5.00] } // 10 or higher
-    }
+    // true  = high success rate → request faster (shorter mean)
+    // false = low success rate  → request slower (longer mean)
+    // const botCooldowns = {
+    //     0:  { true: [2.00, 0.20],  false: [3.60, 0.30] },
+    //     1:  { true: [4.00, 0.40],  false: [4.80, 0.50] },
+    //     2:  { true: [5.00, 0.50],  false: [6.20, 0.70] },
+    //     3:  { true: [6.00, 0.70],  false: [7.80, 1.00] },
+    //     4:  { true: [7.20, 0.90],  false: [9.60, 1.30] },
+    //     5:  { true: [8.80, 1.20],  false: [11.60, 1.70] },
+    //     6:  { true: [10.60, 1.50], false: [14.00, 2.20] },
+    //     7:  { true: [12.60, 1.90], false: [16.80, 2.60] },
+    //     8:  { true: [15.00, 2.30], false: [20.00, 3.20] },
+    //     9:  { true: [18.00, 2.80], false: [25.00, 4.00] },
+    //     10: { true: [22.00, 3.60], false: [32.00, 5.00] } // 10 or higher
+    // }
 
     function request_inventory_based() {
-        const formattedInv = Math.max(0, Math.min(botInventory, 10));
-        const [mean, stddev] = botCooldowns[formattedInv][receivedLastRequest]
+        // Continuous formula: successRate 0..1 maps linearly to maxWait..minWait
+        // botInventory is intentionally NOT used here - it fought against successRate
+        const minWait = 3.0;   // seconds when successRate = 1.0 (always succeeding)
+        const maxWait = 10.0;  // seconds when successRate = 0.0 (always failing)
+        const mean   = maxWait - (maxWait - minWait) * successRate;
+        const stddev = mean * 0.10;
 
         let random = getNormallyDistributedRandomNumber(mean, stddev);
+        const waitMs = Math.max(100, random * 1000); // safety clamp: never below 100ms
         window.setTimeout(function() {
+            const now = performance.now();
+            const elapsed = botLastRequestTime !== null
+                ? ((now - botLastRequestTime) / 1000).toFixed(2)
+                : 'n/a';
+            botLastRequestTime = now;
+
             let result = get_request();
-            botInventory += result;
-            receivedLastRequest = result >= 1
+            // botInventory is NOT updated on success - only decays via activateBotDecliningInventory
+            // update rolling EMA: nudge toward 1 on success, toward 0 on failure
+            successRate = (1 - alpha) * successRate + alpha * (result ? 1 : 0);
+
+            // compute next cooldown for logging
+            const nextMean   = (maxWait - (maxWait - minWait) * successRate).toFixed(2);
+            const nextStddev = (nextMean * 0.10).toFixed(2);
+
+            console.log(
+                `[BOT] result=${result ? 'success' : 'failure'} | ` +
+                `successRate=${successRate.toFixed(3)} | ` +
+                `timeSinceLast=${elapsed}s | ` +
+                `next cooldown: mean=${nextMean}s  std=${nextStddev}s`
+            );
+
             let successor = 1;
             highlight_successor(
                 successor,
@@ -427,7 +456,7 @@
                 js_vars.info_highlight_timeout_seconds
             );
             request_inventory_based();
-        }, random * 1000);
+        }, waitMs);
     }
 
     function activateBotDecliningInventory() {
