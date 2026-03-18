@@ -83,7 +83,7 @@ ROOMS = []
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=0.0008, participation_fee=1.0, doc="", prolific_completion_url=""
+    real_world_currency_per_point=0.0006, participation_fee=1.0, doc="", prolific_completion_url=""
 )
 
 PARTICIPANT_FIELDS = ['finished', 'ecu_earnings']
