@@ -440,12 +440,12 @@
             const nextMean   = (maxWait - (maxWait - minWait) * successRate).toFixed(2);
             const nextStddev = (nextMean * 0.10).toFixed(2);
 
-            console.log(
-                `[BOT] result=${result ? 'success' : 'failure'} | ` +
-                `successRate=${successRate.toFixed(3)} | ` +
-                `timeSinceLast=${elapsed}s | ` +
-                `next cooldown: mean=${nextMean}s  std=${nextStddev}s`
-            );
+            // console.log(
+            //     `[BOT] result=${result ? 'success' : 'failure'} | ` +
+            //     `successRate=${successRate.toFixed(3)} | ` +
+            //     `timeSinceLast=${elapsed}s | ` +
+            //     `next cooldown: mean=${nextMean}s  std=${nextStddev}s`
+            // );
 
             let successor = 1;
             highlight_successor(
