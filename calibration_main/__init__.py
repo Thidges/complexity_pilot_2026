@@ -47,6 +47,7 @@ class Player(BasePlayer):
     total_profit = models.CurrencyField(initial=0)
     total_items_sold = models.IntegerField(initial=0)
     ecu_earnings = models.CurrencyField(initial=0)
+    total_requests = models.IntegerField(initial=0)
     
     refreshed_page = models.BooleanField(initial=False)
 
@@ -119,6 +120,7 @@ def common_vars_for_template(player):
         'total_revenue': player.total_revenue,
         'total_profit': player.total_profit,
         'total_items_sold': player.total_items_sold,
+        'total_requests': player.total_requests,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
         'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
@@ -146,7 +148,8 @@ class Task(Page):
         'total_revenue',
         'total_request_cost',
         'total_inventory_cost',
-        'total_items_sold'
+        'total_items_sold',
+        'total_requests'
     ]
     
     def get_timeout_seconds(player):

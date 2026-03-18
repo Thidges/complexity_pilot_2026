@@ -108,6 +108,7 @@
     <input type="hidden" id="id_total_request_cost" name="total_request_cost" value=""><br>
     <input type="hidden" id="id_total_inventory_cost" name="total_inventory_cost" value="">
     <input type="hidden" id="id_total_items_sold" name="total_items_sold" value="">
+    <input type="hidden" id="id_total_requests" name="total_requests" value="">
 
 
     {{ next_button }}
@@ -157,6 +158,7 @@
     const totalRequestCostInput = document.getElementById("id_total_request_cost");
     const totalInventoryCostInput = document.getElementById("id_total_inventory_cost");
     const totalItemsSoldInput = document.getElementById("id_total_items_sold");
+    const totaRequestsInput = document.getElementById("id_total_requests");
 
     const initialSupply = 2;
     const maxSupply = 3;
@@ -241,6 +243,7 @@
         "total_revenue": js_vars.total_revenue,
         "total_profit": js_vars.total_profit,
         "total_items_sold": js_vars.total_items_sold,
+        "total_requests": js_vars.total_requests
     };
 
     function start_game() {
@@ -274,6 +277,7 @@
         mydata.balance -= js_vars.inventory_click_price;
         mydata.total_cost += js_vars.inventory_click_price;
         mydata.total_request_cost += js_vars.inventory_click_price;
+        mydata.total_requests += 1;
         if (transferred) {
             mydata.inventory += units;
         }
@@ -307,6 +311,7 @@
         totalRequestCostInput.value = mydata.total_request_cost.toFixed(0);
         totalInventoryCostInput.value = mydata.total_inventory_cost.toFixed(0);
         totalItemsSoldInput.value = mydata.total_items_sold;
+        totaRequestsInput.value = mydata.total_requests;
     }
 
     function live_update_status(data) {
