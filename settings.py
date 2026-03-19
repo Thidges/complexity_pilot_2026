@@ -54,6 +54,7 @@ SESSION_CONFIGS = [
         app_sequence=["calibration_intro", "calibration_main", "calibration_questionnaires"],
         num_demo_participants=1,
         cost_per_click=25,
+        real_world_currency_per_point=0.0005,
         **GAME_CONFIG
     ),
     dict(
