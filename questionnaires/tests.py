@@ -14,6 +14,4 @@ class PlayerBot(Bot):
             'strategy_text': 'not much', 
             'comments': ''
         }
-        yield FinalScreen, {
-            'payment_code': random.randint(1000, 9999),
-        }
+        yield Submission(FinalScreen, check_html=False)

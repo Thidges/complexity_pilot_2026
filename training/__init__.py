@@ -1,5 +1,4 @@
 from otree.api import *
-from settings import BASE_URL
 
 doc = """
 Your app description

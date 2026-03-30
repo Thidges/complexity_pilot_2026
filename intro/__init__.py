@@ -1,8 +1,6 @@
 from otree.api import *
 from datetime import datetime
-from otree.settings import DEBUG
-import os
-import json
+from otree.settings import DEBUG, REAL_WORLD_CURRENCY_CODE
 
 doc = """
 Your app description
@@ -42,9 +40,39 @@ class Player(BasePlayer):
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
     confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
 
+    comp_request_cost = models.IntegerField(
+        label="Assume you make 2 requests of which 1 is successful and 1 is not successful. How many ECU did it cost to make these 2 requests?")
+    comp_inventory_cost = models.IntegerField(
+        label="Assume you hold 2 units in inventory for 2 seconds. How many ECU did it cost to hold this inventory?")
+    comp_revenue = models.IntegerField(
+        label="Assume you have 1 unit in your inventory. Your successor requests 1 unit from you. How many ECU do you earn from the transfer?")
+
 
 # FUNCTIONS
+# Functions
+def comp_request_cost_error_message(player, value):
+    actual_cost = player.session.config.get('cost_per_click', 0) * 2
+    if value < actual_cost:
+        return "Check your calculation! The request cost you entered is too low."
+    if value > actual_cost:
+        return "Check your calculation! The request cost you entered is too high."
+    return None
 
+def comp_inventory_cost_error_message(player, value):
+    actual_cost = player.session.config.get('cost_per_second', 0) * 2 * 2  # 2 units times 2 seconds
+    if value < actual_cost:
+        return "Check your calculation! The inventory cost you entered is too low."
+    if value > actual_cost:
+        return "Check your calculation! The inventory cost you entered is too high."
+    return None
+
+def comp_revenue_error_message(player, value):
+    actual_revenue = player.session.config.get('price_per_unit', 0)
+    if value < actual_revenue:
+        return "Check your calculation! The revenue you entered is too low."
+    if value > actual_revenue:
+        return "Check your calculation! The revenue you entered is too high."
+    return None
 
 
 def consent_given_error_message(player, value):
@@ -53,20 +81,7 @@ def consent_given_error_message(player, value):
     return None
 
 # PAGES
-
-# Not currently used, but can be used to show a demo of the supply chain figure
-class FigureDemo(Page):
-    def js_vars(player):
-        return {
-            "own_id_in_group": player.id_in_group,
-        }
-    
-class Welcome(Page):
-    def vars_for_template(player):
-        return {
-            'participation_fee': player.session.config.get('participation_fee', '0.00 EUR')
-        }
-    
+   
 class ConsentRadboud(Page):
     form_model = 'player'
     form_fields = [
@@ -103,7 +118,16 @@ class ConsentRadboud(Page):
         }
 
 
-class GameInstructions(Page):  
+class GameInstructions(Page):
+    form_model = 'player'
+
+    def get_form_fields(player):
+        sess = player.session
+        cost_per_click = sess.config.get('cost_per_click', 2)
+        if cost_per_click == 0:
+            return ['comp_inventory_cost', 'comp_revenue']
+        return ['comp_request_cost', 'comp_inventory_cost', 'comp_revenue']
+
     def vars_for_template(player):
         sess = player.session
         rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
@@ -113,15 +137,17 @@ class GameInstructions(Page):
         half = players_per_group // 2
         middle_pos = half if players_per_group % 2 == 0 else half + 1
         
-        initial_cash_rounds = sess.config.get('initial_cash', None)
-        initial_cash_rounds = [[int(x.strip()) for x in blocks.split(',')] for blocks in initial_cash_rounds.split(';')] if initial_cash_rounds else [[0]]
-        initial_cash = initial_cash_rounds[0][0]
+        initial_cash = sess.config.get('initial_cash', None)
 
-        ecu_earn = sess.config.get('price_per_unit', "10").split(';')[0]
-        ecu_inventory_cost = sess.config.get('cost_per_second', "5").split(';')[0]
+        ecu_earn = sess.config.get('price_per_unit', 10)
+        ecu_inventory_cost = sess.config.get('cost_per_second', 5)
+        ecu_request_cost = sess.config.get('cost_per_click', 2)
+
+        round_seconds = sess.config.get('round_seconds', 30)
+        round_minutes = round_seconds / 60
         
         return {
-            'exchange_rate': f"100 ECU = {hundred_ecu:.2f} €",
+            'exchange_rate': f"100 ECU = {hundred_ecu:.2f} {REAL_WORLD_CURRENCY_CODE}",
             'num_participants': players_per_group if show_chain else "several",
             'show_chain': show_chain,
             'DEBUG': DEBUG,
@@ -129,9 +155,9 @@ class GameInstructions(Page):
             'ecu_endowment': initial_cash ,
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,
-            'round_seconds': sess.config.get('round_seconds', 30),
-            'num_rounds': sess.config.get('num_rounds', 1),
-            'training_round_seconds': sess.config.get('training_round_seconds', 30),
+            'ecu_request_cost': ecu_request_cost,
+            'round_seconds': round_seconds,
+            'round_minutes': round_minutes
         }
     
     
@@ -148,8 +174,7 @@ class GameInstructions(Page):
         }
 
 page_sequence = [
-    # FigureDemo, 
-    Welcome,
+    # Welcome,
     ConsentRadboud, 
     GameInstructions
 ]

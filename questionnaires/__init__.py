@@ -44,28 +44,10 @@ class Player(BasePlayer):
     specific_strategy = models.BooleanField(label="Did you follow any specific strategy in this experiment?", widget=widgets.RadioSelect, choices=[(True, 'Yes'), (False, 'No')])
     strategy_text = models.LongStringField(label="If Yes: Can you please briefly describe this strategy?", blank=True)
     comments = models.LongStringField(label="Is there anything you like to share about the experiment (suggestions, remaining questions, other feedback)?", blank=True)
-    
-    payment_code = models.StringField()
-    selected_round = models.IntegerField()
-    ecu_earnings = models.CurrencyField()
-    eur_earnings = models.FloatField()
 
 
 # FUNCTIONS
-def set_payments(player):
-    rounds = player.participant.vars.get('game_rounds', [])
-    if len(rounds) > 0:
-        selected_round = random.randint(1, len(rounds))
-        player.selected_round = selected_round
-        player.ecu_earnings = rounds[selected_round - 1]['ecu_earnings']
-        player.eur_earnings = rounds[selected_round - 1]['eur_earnings']
-        if player.eur_earnings >= 0:
-            player.payoff = player.ecu_earnings
 
-    else:
-        player.selected_round = 1
-        player.ecu_earnings = 0
-        player.eur_earnings = 0
     
 # PAGES
 class Questionnaire(Page):
@@ -79,28 +61,28 @@ class Questionnaire(Page):
         return None
     
     def before_next_page(player, timeout_happened):
-        return set_payments(player)
-
+        player.participant.finished = True
+            
 
 class FinalScreen(Page):
-    form_model = 'player'
-    form_fields = ['payment_code']
-
     def vars_for_template(player):
         sess = player.session
-        rounds = player.participant.vars.get('game_rounds', [])
         pppf = player.participant.payoff_plus_participation_fee()
+        ecu_earnings = player.participant.vars.get('ecu_earnings', 0)
+        if ecu_earnings > 0:
+            rwc_earnings = round(int(ecu_earnings) * sess.config['real_world_currency_per_point'], 2)
+        else:
+            rwc_earnings = 0
+
         base_payment_link = sess.config.get('payment_link', 'https://example.com')
         payment_link = f"{base_payment_link}?CodeA={player.participant.code}&Amount={float(pppf):.2f}"
         return {
-            'game_rounds': rounds,
             'participation_fee': sess.config['participation_fee'],
             'final_payment': pppf,
+            'ecu_earnings': ecu_earnings,
+            'rwc_earnings': f"€{rwc_earnings:.2f}",
             'payment_link': payment_link,
-            'round_payment_negative': player.eur_earnings < 0,
         }
-    
-    def before_next_page(player, timeout_happened):
-        player.participant.finished = True
+
 
 page_sequence = [Questionnaire, FinalScreen]

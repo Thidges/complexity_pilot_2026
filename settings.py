@@ -4,7 +4,13 @@ GAME_CONFIG = dict(
     request_timeout_seconds=0,
     info_highlight_timeout_seconds=1,
     countdown_seconds=5,
-    round_seconds=600, # 300
+    round_seconds=300, # 300
+    initial_stock=2,
+    initial_cash=300,
+    cost_per_second=5,
+    cost_per_click=25,
+    price_per_unit=100,
+    show_chain=False,
     payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_4ZXrz1uGVKevsrA",
 )
 
@@ -23,37 +29,22 @@ TRAINING_CONFIG = dict(
     training_info_highlight_timeout_seconds=1,
 )
 
-COMPETITION_TRAINING_CONFIG = dict(
-    training_cost_per_second=5,
-    training_price_per_unit=100,
-    training_initial_stock=2,
-    training_initial_cash=300,
-    training_round_seconds=900,
-    training_transfer_probability=0.5,
-    training_start_delay_seconds=2,
-    training_leave_seconds=1,
-    training_request_timeout_seconds=0,
-    training_info_highlight_timeout_seconds=1,
-)
-
-S_10_T = dict(
-    treatment="S_10_T",
-    players_per_group=5,
-    initial_stock="2, 2, 2, 2, 2",
-    initial_cash="300, 300, 300, 300, 300",
-    cost_per_second="5",
-    price_per_unit="100",
-    show_chain="True"
-)
-
-COMP_DEMO = dict(
-    treatment="comp",
-    players_per_group=4,
-    initial_stock="2, 2, 2, 2",
-    initial_cash="300, 300, 300, 300",
-    cost_per_second="5",
-    price_per_unit="100",
-    show_chain="False"
+treatments = dict(
+    NI_5 = dict(
+        treatment="NI_5",
+        players_per_group=5,
+        show_info=False
+    ),
+        NI_10 = dict(
+        treatment="NI_10",
+        players_per_group=10,
+        show_info=False
+    ),
+    AI_5 = dict(
+        treatment="AI_5",
+        players_per_group=5,
+        show_info=True
+    )
 )
 
 
@@ -64,9 +55,6 @@ SESSION_CONFIGS = [
         app_sequence=["intro"],
         num_demo_participants=1,
         players_per_group=5,
-        initial_cash="30, 30, 30, 30, 30",
-        initial_stock="2, 2, 2, 2, 2",
-        show_chain=False,
         **GAME_CONFIG,
         **TRAINING_CONFIG
     ),
@@ -79,36 +67,28 @@ SESSION_CONFIGS = [
         **TRAINING_CONFIG
     ),
     dict(
-        name="competition_training",
-        display_name="Competition Training Round",
-        app_sequence=["competition_training"],
-        num_demo_participants=1,
-        players_per_group=1,
-        **COMPETITION_TRAINING_CONFIG
-    ),
-    dict(
-        name="S_10_T_demo",
+        name="NI_5_demo",
+        display_name="No Info, 5 Players, demo",
         app_sequence=["ringsupplychain"],
-        display_name="S_10_T Demo",
         num_demo_participants=5,
-        **GAME_CONFIG,
-        **S_10_T
+        treatment = "NI_5",
+        **GAME_CONFIG
     ),
     dict(
-        name="competition",
-        app_sequence=["ringsupplychain_comp"],
-        display_name="Comp. double ring, Demo",
-        num_demo_participants=4,
-        **GAME_CONFIG,
-        **COMP_DEMO
+        name="NI_10_demo",
+        display_name="No Info, 10 Players, demo",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=10,
+        treatment = "NI_10",
+        **GAME_CONFIG
     ),
     dict(
-        name="competition_middleman",
-        app_sequence=["ring_comp_middleman"],
-        display_name="Comp. jump middleman, Demo",
-        num_demo_participants=4,
-        **GAME_CONFIG,
-        **COMP_DEMO
+        name="AI_5_demo",
+        display_name="All Info, 5 Players, demo",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=5,
+        treatment = "AI_5",
+        **GAME_CONFIG
     ),
     dict(
         name="questionnaire",
@@ -122,14 +102,12 @@ SESSION_CONFIGS = [
         display_name="Full Experiment",
         app_sequence=[
             "intro",
-            "competition_training",
-            "ring_comp_middleman",
+            "training",
+            "ringsupplychain",
             "questionnaires"
         ],
         num_demo_participants=4,
-        **COMPETITION_TRAINING_CONFIG,
-        **GAME_CONFIG,
-        **COMP_DEMO
+        **GAME_CONFIG
     )
 ]
 
@@ -156,8 +134,8 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=0.0005, participation_fee=5.00, doc=""
 )
 
-PARTICIPANT_FIELDS = ['game_rounds', 'pages_completed', 'finished']
-SESSION_FIELDS = ['advance_pages']
+PARTICIPANT_FIELDS = ['finished']
+SESSION_FIELDS = []
 
 # ISO-639 code
 # for example: de, fr, ja, ko, zh-hans
@@ -177,6 +155,3 @@ DEMO_PAGE_INTRO_HTML = """ """
 SECRET_KEY = '7220483092201'
 
 BROWSER_COMMAND = "/Users/christian/chrome.sh"
-
-# URL from heroku labs runtime-dyno-metadata
-BASE_URL = environ.get('HEROKU_APP_DEFAULT_DOMAIN_NAME', 'localhost:8000')
