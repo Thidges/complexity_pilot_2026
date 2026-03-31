@@ -20,7 +20,11 @@
         For the payment, you will provide your payment details on a secure, GDPR-compliant server which keeps your data separate from the information recorded as part of this study.
     </p>
     <p>
-        <a class="btn btn-primary" href="{{ payment_link }}" target="_blank" id="payment_link">Go to Payment Form</a>
+        <button class="btn btn-primary" type="button" onclick="
+            var form = document.getElementById('form');
+            fetch(window.location.href, {method: 'POST', body: new URLSearchParams(new FormData(form))})
+                .then(function() { window.location.href = '{{ payment_link }}'; });
+        ">Go to Payment Form</button>
     </p>
 
 {{ endblock }}

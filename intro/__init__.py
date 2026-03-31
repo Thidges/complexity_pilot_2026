@@ -1,6 +1,5 @@
 from otree.api import *
 from datetime import datetime
-from otree.settings import DEBUG, REAL_WORLD_CURRENCY_CODE
 
 doc = """
 Your app description
@@ -81,7 +80,7 @@ def consent_given_error_message(player, value):
     return None
 
 # PAGES
-   
+    
 class ConsentRadboud(Page):
     form_model = 'player'
     form_fields = [
@@ -118,63 +117,7 @@ class ConsentRadboud(Page):
         }
 
 
-class GameInstructions(Page):
-    form_model = 'player'
-
-    def get_form_fields(player):
-        sess = player.session
-        cost_per_click = sess.config.get('cost_per_click', 2)
-        if cost_per_click == 0:
-            return ['comp_inventory_cost', 'comp_revenue']
-        return ['comp_request_cost', 'comp_inventory_cost', 'comp_revenue']
-
-    def vars_for_template(player):
-        sess = player.session
-        rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
-        hundred_ecu = 100 * rwc_pp
-        players_per_group = sess.config.get('players_per_group', 5)
-        show_chain = sess.config.get('show_chain', False)
-        half = players_per_group // 2
-        middle_pos = half if players_per_group % 2 == 0 else half + 1
-        
-        initial_cash = sess.config.get('initial_cash', None)
-
-        ecu_earn = sess.config.get('price_per_unit', 10)
-        ecu_inventory_cost = sess.config.get('cost_per_second', 5)
-        ecu_request_cost = sess.config.get('cost_per_click', 2)
-
-        round_seconds = sess.config.get('round_seconds', 30)
-        round_minutes = round_seconds / 60
-        
-        return {
-            'exchange_rate': f"100 ECU = {hundred_ecu:.2f} {REAL_WORLD_CURRENCY_CODE}",
-            'num_participants': players_per_group if show_chain else "several",
-            'show_chain': show_chain,
-            'DEBUG': DEBUG,
-            'own_id_in_group': middle_pos,
-            'ecu_endowment': initial_cash ,
-            'ecu_earn': ecu_earn,
-            'ecu_inventory_cost': ecu_inventory_cost,
-            'ecu_request_cost': ecu_request_cost,
-            'round_seconds': round_seconds,
-            'round_minutes': round_minutes
-        }
-    
-    
-    @staticmethod
-    def js_vars(player):
-        players_per_group = player.session.config.get('players_per_group', 5)
-        half = players_per_group // 2
-        middle_pos = half if players_per_group % 2 == 0 else half + 1
-        return {
-            'own_id_in_group': middle_pos,
-            'players_per_group': players_per_group,
-            "player_id": player.id_in_group,
-            "current_page_name": player.participant._current_page_name
-        }
 
 page_sequence = [
-    # Welcome,
-    ConsentRadboud, 
-    GameInstructions
+    ConsentRadboud
 ]
