@@ -8,8 +8,6 @@ GAME_CONFIG = dict(
     round_seconds=300, # 300
     start_delay_seconds=1,
     leave_seconds=15,
-    initial_stock=2,
-    initial_cash=300,
     cost_per_second=5,
     cost_per_click=25,
     price_per_unit=100,
@@ -23,16 +21,22 @@ TREATMENTS = dict(
     NI_5 = dict(
         treatment="NI_5",
         players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
         show_info=False
     ),
         NI_10 = dict(
         treatment="NI_10",
         players_per_group=10,
+        initial_stock=1,
+        initial_cash=300,
         show_info=False
     ),
     AI_5 = dict(
         treatment="AI_5",
         players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
         show_info=True
     )
 )

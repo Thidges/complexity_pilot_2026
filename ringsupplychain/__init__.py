@@ -19,8 +19,6 @@ class C(BaseConstants):
 
 
 class Subsession(BaseSubsession):
-    initial_stock = models.IntegerField()
-    initial_cash = models.CurrencyField()
     cost_per_second = models.FloatField()
     cost_per_click = models.FloatField()
     price_per_unit = models.FloatField()
@@ -42,6 +40,8 @@ class Group(BaseGroup):
     group_size = models.IntegerField()
     treatment = models.StringField()
     show_info = models.BooleanField(initial=False)
+    initial_stock = models.IntegerField()
+    initial_cash = models.CurrencyField()
 
 class Player(BasePlayer):
     inventory = models.IntegerField()
@@ -90,7 +90,6 @@ def shuffled(l):
 
 def creating_session(subsession):
     sess = subsession.session
-    
     request_timeout_seconds = sess.config.get('request_timeout_seconds', None)
     info_highlight_timeout_seconds = sess.config.get('info_highlight_timeout_seconds', None)
     countdown_seconds = sess.config.get('countdown_seconds', 5)
@@ -98,8 +97,6 @@ def creating_session(subsession):
     training_round_seconds = sess.config.get('training_round_seconds', None)
     start_delay_seconds = sess.config.get('start_delay_seconds', None)
     leave_seconds = sess.config.get('leave_seconds', None)
-    initial_stock = sess.config.get('initial_stock', None)
-    initial_cash = sess.config.get('initial_cash', None)
     cost_per_second = sess.config.get('cost_per_second', None)
     cost_per_click = sess.config.get('cost_per_click', None)
     price_per_unit = sess.config.get('price_per_unit', None)
@@ -109,12 +106,10 @@ def creating_session(subsession):
     total_seconds = countdown_seconds + round_seconds
     training_total_seconds = countdown_seconds + training_round_seconds
     
-    if any(var is None for var in [initial_stock, initial_cash, cost_per_second, cost_per_click, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds]):
+    if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds]):
         raise ValueError("session not configured correctly")
     
     # assign variables
-    subsession.initial_stock = initial_stock
-    subsession.initial_cash = initial_cash
     subsession.cost_per_second = cost_per_second
     subsession.cost_per_click = cost_per_click
     subsession.price_per_unit = price_per_unit
@@ -131,11 +126,8 @@ def creating_session(subsession):
     subsession.countdown_seconds = countdown_seconds
     
     subsession.maximum_units = 10
-        
-    # assign endowments to players
-    for player in subsession.get_players():
-        player.inventory = initial_stock
-        player.balance = cu(initial_cash)
+    
+
 
 def live_inventory(player):
     # get current time
@@ -193,6 +185,12 @@ def live_request(player, data):
 
     from_revenue = 0
     transferred = False
+
+    # charge click cost to requesting player unconditionally
+    click_cost = subsession.cost_per_click
+    give_to_player.balance -= click_cost
+    give_to_player.total_cost += click_cost
+    give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
 
     # Check if the take_from player has enough inventory
     if take_from_player.inventory >= units:
@@ -287,6 +285,7 @@ def common_vars_for_template(player):
         'num_players': group.group_size,
         'show_info': group.show_info,
         'treatment': group.treatment,
+        'cost_per_click': subs.cost_per_click,
         'show_chain': subs.show_chain,
         'auto_play': subs.auto_play,
         'round_seconds': subs.round_seconds,
@@ -435,6 +434,12 @@ class GroupMatching(WaitPage):
         for group in groups:
             group.show_info = TREATMENTS[group.treatment]['show_info']
             group.group_size = TREATMENTS[group.treatment]['players_per_group']
+            group.initial_stock = TREATMENTS[group.treatment]['initial_stock']
+            group.initial_cash = TREATMENTS[group.treatment]['initial_cash']
+            
+        for player in players:
+            player.inventory = TREATMENTS[player.group.treatment]['initial_stock']
+            player.balance = TREATMENTS[player.group.treatment]['initial_cash']
             
 
 class GameInstructions(Page):
@@ -456,8 +461,6 @@ class GameInstructions(Page):
         half = players_per_group // 2
         middle_pos = half if players_per_group % 2 == 0 else half + 1
 
-        initial_cash = sess.config.get('initial_cash', None)
-
         ecu_earn = sess.config.get('price_per_unit', 10)
         ecu_inventory_cost = sess.config.get('cost_per_second', 5)
         ecu_request_cost = sess.config.get('cost_per_click', 2)
@@ -471,7 +474,7 @@ class GameInstructions(Page):
             'show_chain': show_chain,
             'DEBUG': DEBUG,
             'own_id_in_group': middle_pos,
-            'ecu_endowment': initial_cash,
+            'ecu_endowment': player.group.initial_cash,
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,
             'ecu_request_cost': ecu_request_cost,
@@ -488,7 +491,6 @@ class GameInstructions(Page):
             'own_id_in_group': middle_pos,
             'players_per_group': players_per_group,
             "player_id": player.id_in_group,
-            "current_page_name": player.participant._current_page_name
         }
     
 class TrainingRound(Page):
@@ -603,8 +605,9 @@ class ResultsFigure(Page):
         balance = list()
         inventory = list()
         
-        initial_cash = subs.initial_cash
-        initial_stock = subs.initial_stock
+        group = player.group
+        initial_cash = group.initial_cash
+        initial_stock = group.initial_stock
         
         for sec in range(subs.round_seconds + 1):
             if sec == 0:
