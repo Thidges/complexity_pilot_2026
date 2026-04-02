@@ -36,7 +36,13 @@
                 <h4 class="card-header text-center">Predecessor</h4>
                 <div class="card-body outer_box">
                     <div class="mb-2 text-center">
-                        <button type="button" class="btn btn-primary" id="request_btn">Request a Unit</button>
+                        <button type="button" class="btn btn-primary" id="request_btn">
+                            {% if cost_per_click > 0 %} 
+                                Request a Unit (-{{ cost_per_click|to0 }} ECU)
+                            {% else %}
+                                Request a Unit
+                            {% endif %}
+                        </button>
                     </div>
                     <div class="info_box text-center" id="predecessor1_info">
                         <span id="predecessor1_transfer_status"></span><br>
@@ -184,7 +190,7 @@
         requestButton.innerHTML = "Please Wait";
         setTimeout(function() {
             requestButton.disabled = false;
-            requestButton.innerHTML = "Request a Unit";
+            requestButton.innerHTML = js_vars.cost_per_click > 0 ? `Request a Unit (-${js_vars.cost_per_click} ECU)` : 'Request a Unit';
         }, timeout_seconds * 1000);
     }
     

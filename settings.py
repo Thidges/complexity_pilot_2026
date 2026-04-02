@@ -28,7 +28,7 @@ TREATMENTS = dict(
         NI_10 = dict(
         treatment="NI_10",
         players_per_group=10,
-        initial_stock=1,
+        initial_stock=2,
         initial_cash=300,
         show_info=False
     ),

@@ -33,16 +33,16 @@ class Player(BasePlayer):
     #student_or_working = models.StringField(label="Are you currently a student or working?", widget=widgets.RadioSelect, choices=[
         #('student', 'student'),
         #('working', 'working')])
-    education_level = models.StringField(label="What is your highest level of education?", widget=widgets.RadioSelect, choices=[
-        ('high_school', 'High School Diploma'),
-        ('bachelor', "Bachelor's Degree"),
-        ('master', "Master's Degree"),
-        ('phd', "PhD or equivalent"),
-        ('other', 'other')])
+    # education_level = models.StringField(label="What is your highest level of education?", widget=widgets.RadioSelect, choices=[
+    #     ('high_school', 'High School Diploma'),
+    #     ('bachelor', "Bachelor's Degree"),
+    #     ('master', "Master's Degree"),
+    #     ('phd', "PhD or equivalent"),
+    #     ('other', 'other')])
     risk_general = models.IntegerField(label="How would you rate your willingness to take risks generally in life?", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 8)])
     instructions_understood = models.IntegerField(label="How well did you understand the instructions in the experiment?", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 6)])
-    specific_strategy = models.BooleanField(label="Did you follow any specific strategy in this experiment?", widget=widgets.RadioSelect, choices=[(True, 'Yes'), (False, 'No')])
-    strategy_text = models.LongStringField(label="If Yes: Can you please briefly describe this strategy?", blank=True)
+    # specific_strategy = models.BooleanField(label="Did you follow any specific strategy in this experiment?", widget=widgets.RadioSelect, choices=[(True, 'Yes'), (False, 'No')])
+    strategy_text = models.LongStringField(label="Briefly describe this strategy you applied in this study.")
     comments = models.LongStringField(label="Is there anything you like to share about the experiment (suggestions, remaining questions, other feedback)?", blank=True)
 
 
@@ -52,13 +52,19 @@ class Player(BasePlayer):
 # PAGES
 class Questionnaire(Page):
     form_model = 'player'
-    form_fields = ['gender', 'birth_year', 'education_level', 'risk_general', 'instructions_understood', 'specific_strategy', 'strategy_text', 'comments']
+    form_fields = ['gender', 'birth_year', 
+                   # 'education_level', 
+                   'risk_general', 
+                   'instructions_understood', 
+                   # 'specific_strategy', 
+                   'strategy_text', 
+                   'comments']
 
-    @staticmethod
-    def error_message(player, values):
-        if values['specific_strategy'] and not values['strategy_text']:
-            return "If you followed a specific strategy, please describe it in the text field provided."
-        return None
+    # @staticmethod
+    # def error_message(player, values):
+    #     if values['specific_strategy'] and not values['strategy_text']:
+    #         return "If you followed a specific strategy, please describe it in the text field provided."
+    #     return None
     
     def before_next_page(player, timeout_happened):
         player.participant.finished = True
