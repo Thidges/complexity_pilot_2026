@@ -38,9 +38,9 @@
                     <div class="mb-2 text-center">
                         <button type="button" class="btn btn-primary" id="request_btn">Request a Unit</button>
                     </div>
-                    <div class="info_box text-center" id="predecessor_info">
-                        <span id="predecessor_transfer_status"></span><br>
-                        <span id="predecessor_transfer_units"></span>
+                    <div class="info_box text-center" id="predecessor1_info">
+                        <span id="predecessor1_transfer_status"></span><br>
+                        <span id="predecessor1_transfer_units"></span>
                     </div>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -80,10 +80,10 @@
                     Successor
                 </h4>
                 <div class="card-body outer_box">
-                    <div class="info_box text-center" id="successor_info">
-                        <span id="successor_transfer_status"></span><br>
-                        <span id="successor_transfer_units"></span><br>
-                        <span id="successor_transfer_cash"></span>
+                    <div class="info_box text-center" id="successor1_info">
+                        <span id="successor1_transfer_status"></span><br>
+                        <span id="successor1_transfer_units"></span><br>
+                        <span id="successor1_transfer_cash"></span>
                     </div>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -134,14 +134,13 @@
     const totalCostDisplay = document.getElementById("total_cost_display");
     const totalItemsSold = document.getElementById("total_items_sold_display");
     const totalRevenueDisplay = document.getElementById("total_revenue_display");
-    // const totalProfitDisplay = document.getElementById("total_profit_display");
-    const predecessorInfo = document.getElementById("predecessor_info");
-    const successorInfo = document.getElementById("successor_info");
-    const predecessorTransferStatus = document.getElementById("predecessor_transfer_status");
-    const predecessorTransferUnits = document.getElementById("predecessor_transfer_units");
-    const successorTransferStatus = document.getElementById("successor_transfer_status");
-    const successorTransferUnits = document.getElementById("successor_transfer_units");
-    const successorTransferCash = document.getElementById("successor_transfer_cash");
+    const predecessor1Info = document.getElementById("predecessor1_info");
+    const successor1Info = document.getElementById("successor1_info");
+    const predecessor1TransferStatus = document.getElementById("predecessor1_transfer_status");
+    const predecessor1TransferUnits = document.getElementById("predecessor1_transfer_units");
+    const successor1TransferStatus = document.getElementById("successor1_transfer_status");
+    const successor1TransferUnits = document.getElementById("successor1_transfer_units");
+    const successor1TransferCash = document.getElementById("successor1_transfer_cash");
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
     
@@ -222,6 +221,7 @@
         if (data['to_player'] === js_vars.own_id_in_group) {
             update_receiver_data(data);
             highlight_predecessor(
+                1,
                 data['transferred'], 
                 data['units'], 
                 js_vars.info_highlight_timeout_seconds
@@ -232,6 +232,7 @@
         if (data['from_player'] === js_vars.own_id_in_group) {
             update_sender_data(data)
             highlight_successor(
+                1,
                 data['transferred'],
                 data['units'],
                 data['cash'],

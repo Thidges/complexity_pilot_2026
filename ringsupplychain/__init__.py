@@ -571,7 +571,7 @@ class Results(Page):
         items_delivered = player.total_revenue / subs.price_per_unit if subs.price_per_unit > 0 else 0
 
         return {
-            'initial_balance': subs.initial_cash,
+            'initial_balance': player.group.initial_cash,
             'num_items_delivered': int(items_delivered),
             **cv
         }
