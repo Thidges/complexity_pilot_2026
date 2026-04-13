@@ -431,7 +431,7 @@ class GroupMatching(WaitPage):
         
         first = shuffled_players[0:5]
         second = shuffled_players[5:10]
-        third = shuffled_players[10:15]
+        third = shuffled_players[10:20]
         subsession.set_group_matrix([first, second, third])
 
         groups = subsession.get_groups()
@@ -464,10 +464,7 @@ class GameInstructions(Page):
         sess = player.session
         rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
         hundred_ecu = 100 * rwc_pp
-        players_per_group = sess.config.get('players_per_group', 5)
-        show_chain = sess.config.get('show_chain', False)
-        half = players_per_group // 2
-        middle_pos = half if players_per_group % 2 == 0 else half + 1
+        players_per_group = player.group.group_size
 
         ecu_earn = sess.config.get('price_per_unit', 10)
         ecu_inventory_cost = sess.config.get('cost_per_second', 5)
@@ -480,9 +477,7 @@ class GameInstructions(Page):
             'exchange_rate': f"100 ECU = {hundred_ecu:.2f} {REAL_WORLD_CURRENCY_CODE}",
             'real_world_currency_code': REAL_WORLD_CURRENCY_CODE,
             'group_size': players_per_group,
-            'show_chain': show_chain,
             'DEBUG': DEBUG,
-            'own_id_in_group': middle_pos,
             'ecu_endowment': player.group.initial_cash,
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,

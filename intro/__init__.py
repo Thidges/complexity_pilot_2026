@@ -45,7 +45,6 @@ class Player(BasePlayer):
 
 
 # FUNCTIONS
-# Functions
 def comp_request_cost_error_message(player, value):
     actual_cost = player.session.config.get('cost_per_click', 0) * 2
     if value < actual_cost:
