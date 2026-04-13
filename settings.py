@@ -65,7 +65,7 @@ SESSION_CONFIGS = [
             "ringsupplychain",
             "questionnaires"
         ],
-        num_demo_participants=5,
+        num_demo_participants=10,
         **GAME_CONFIG
     )
 ]

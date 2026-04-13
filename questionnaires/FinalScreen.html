@@ -8,23 +8,29 @@
         Thank you very much for participating in this experiment!
     </p>
     <p>
-        You earned {{ ecu_earnings }} in the task. This corresponds to a bonus payment of {{ rwc_earnings }}.<br>
-        In addition, you receive a fixed payment for completing the study of {{ participation_fee }}.
+        Your final balance is {{ ecu_earnings }}.
     </p>
 
-    <p>
-        Your total payment is <b>{{ final_payment }}</b>.
-    </p>
+    {{ if ecu_earnings >= 0 }}
+        <p>
+            This amount converts to a bonus of {{ rwc_earnings }}. Together with the completion fee of {{ participation_fee }}, your payment will be {{ final_payment }}.
+        </p>
+    {{ else }}
+        <p>
+           As this amount is negative, your payment will be {{ participation_fee }}.
+        </p>
+    {{ endif }}
 
     <p>
-        For the payment, you will provide your payment details on a secure, GDPR-compliant server which keeps your data separate from the information recorded as part of this study.
+        For payment, you will provide your payment details on a secure, GDPR-compliant server that keeps your payment data separate from the information recorded in this study.
     </p>
+
     <p>
         <button class="btn btn-primary" type="button" onclick="
             var form = document.getElementById('form');
             fetch(window.location.href, {method: 'POST', body: new URLSearchParams(new FormData(form))})
                 .then(function() { window.location.href = '{{ payment_link }}'; });
-        ">Go to Payment Form</button>
+        ">Enter Payment Information</button>
     </p>
 
 {{ endblock }}

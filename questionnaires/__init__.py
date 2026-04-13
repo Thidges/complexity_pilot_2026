@@ -1,6 +1,4 @@
 from otree.api import *
-import random
-
 
 doc = """
 Your app description
@@ -26,10 +24,11 @@ class Player(BasePlayer):
         ('female', 'female'),
         ('male', 'male'),
         ('other', 'other'),
-        ('prefer_not_to_say', 'prefer not to say')])
-    birth_year = models.IntegerField(
-        label="In which year are you born? (Please enter full calendar year with four digits)",
-        min=1900, max=2009)
+        ('prefer_not_to_say', 'prefer not to tell')])
+    # birth_year = models.IntegerField(
+    #     label="In which year are you born? (Please enter full calendar year with four digits)",
+    #     min=1900, max=2009)
+    age = models.IntegerField(label="How old are you?", min=16)
     #student_or_working = models.StringField(label="Are you currently a student or working?", widget=widgets.RadioSelect, choices=[
         #('student', 'student'),
         #('working', 'working')])
@@ -52,20 +51,15 @@ class Player(BasePlayer):
 # PAGES
 class Questionnaire(Page):
     form_model = 'player'
-    form_fields = ['gender', 'birth_year', 
-                   # 'education_level', 
-                   'risk_general', 
+    form_fields = ['gender',
+                   'age',
+                   'risk_general',
                    'instructions_understood', 
-                   # 'specific_strategy', 
-                   'strategy_text', 
-                   'comments']
+                   'strategy_text',
+                   'comments'
+    ]
 
-    # @staticmethod
-    # def error_message(player, values):
-    #     if values['specific_strategy'] and not values['strategy_text']:
-    #         return "If you followed a specific strategy, please describe it in the text field provided."
-    #     return None
-    
+
     def before_next_page(player, timeout_happened):
         player.participant.finished = True
             

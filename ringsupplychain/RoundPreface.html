@@ -5,10 +5,11 @@
 {{ block content }}
 
     <p>
-        The task takes {{ round_seconds }} seconds. Your starting balance is {{ balance }}. Your starting inventory is {{ inventory }} units. Click “Start” button to start the task.
+        Your starting balance is {{ balance }}. <br>
+        Your starting inventory is {{ inventory }} units.
     </p>
     <p>
-        This task will affect your payment.
+        Your choices in this task affect your payment!
     </p>
 
     {{ formfields }}
@@ -19,6 +20,6 @@
 {{ block scripts }}
     <script>
         const nextButton = document.getElementsByClassName("otree-btn-next")[0];
-        nextButton.innerText = "Start";
+        nextButton.innerText = "Start Task";
     </script>
 {{ endblock scripts }}

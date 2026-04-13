@@ -32,12 +32,9 @@ class Player(BasePlayer):
 
     confirm_read_understood = models.BooleanField(widget=widgets.CheckboxInput)
     voluntary_participation = models.BooleanField(widget=widgets.CheckboxInput)
-    data_access_by_authorities = models.BooleanField(widget=widgets.CheckboxInput)
-    data_anonymity = models.BooleanField(widget=widgets.CheckboxInput)
     data_publication = models.BooleanField(widget=widgets.CheckboxInput)
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
-    confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
 
     comp_request_cost = models.IntegerField(
         label="Assume you make 2 requests of which 1 is successful and 1 is not successful. How many ECU did it cost to make these 2 requests?")
@@ -86,24 +83,18 @@ class ConsentRadboud(Page):
     form_fields = [
         'confirm_read_understood',
         'voluntary_participation',
-        'data_access_by_authorities',
-        'data_anonymity',
         'data_publication',
         'future_research_use',
         'agree_to_participate',
-        'confirm_info_reviewed_again',
     ]
     
     def error_message(self, values):
         required_checks = [
             'confirm_read_understood',
             'voluntary_participation',
-            'data_access_by_authorities',
-            'data_anonymity',
             'data_publication',
             'future_research_use',
             'agree_to_participate',
-            'confirm_info_reviewed_again'
         ]
         unchecked = [field for field in required_checks if not values.get(field)]
         if unchecked:
@@ -112,7 +103,6 @@ class ConsentRadboud(Page):
     
     def vars_for_template(player):
         return {
-            'consent_date': datetime.now().strftime("%Y-%m-%d"),
             'participation_fee': player.session.config.get('participation_fee', '0.00 EUR')
         }
 

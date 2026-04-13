@@ -1,5 +1,5 @@
 {{ block title }}
-    Decision
+    Task
 {{ endblock }}
 
 {{ block styles }}
@@ -7,7 +7,7 @@
         .outer_box {
             display: flex;
             flex-direction: column;
-            height: 200px;
+            height: 250px;
         }
         .info_box {
             flex-grow: 1;
@@ -36,6 +36,11 @@
                 <h4 class="card-header text-center">Predecessor</h4>
                 <div class="card-body outer_box">
                     <div class="mb-2 text-center">
+                        {% if show_info %}
+                        <p>
+                            Inventory: <span id="predecessor1_inventory">{{ pre_inventory }}</span> units
+                        </p>
+                        {% endif %}
                         <button type="button" class="btn btn-primary" id="request_btn">
                             {% if cost_per_click > 0 %} 
                                 Request a Unit (-{{ cost_per_click|to0 }} ECU)
@@ -86,6 +91,11 @@
                     Successor
                 </h4>
                 <div class="card-body outer_box">
+                    {% if show_info %}
+                    <p>
+                        Inventory: <span id="successor1_inventory">{{ suc_inventory }}</span> units
+                    </p>
+                    {% endif %}
                     <div class="info_box text-center" id="successor1_info">
                         <span id="successor1_transfer_status"></span><br>
                         <span id="successor1_transfer_units"></span><br>
@@ -149,6 +159,17 @@
     const successor1TransferCash = document.getElementById("successor1_transfer_cash");
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
+
+    let predecessor1Inventory, successor1Inventory, othersdata;
+
+    if (js_vars.show_info) {
+        predecessor1Inventory = document.getElementById("predecessor1_inventory");
+        successor1Inventory = document.getElementById("successor1_inventory");
+        othersdata = {
+            "predecessor1_inventory": js_vars.predecessor1_inventory,
+            "successor1_inventory": js_vars.successor1_inventory,
+        }
+    }
     
     oTreeTimer.style.display = "none";
     startTimer.style.display = "none";
@@ -184,6 +205,7 @@
         "total_profit": js_vars.total_profit,
         "total_items_sold": js_vars.total_items_sold
     };
+
     
     function timeout_request_button(timeout_seconds) {
         requestButton.disabled = true;
@@ -212,6 +234,43 @@
         mydata.total_items_sold = data['from_revenue'] / js_vars.price_per_unit;
         update_display();
     }
+
+    function get_predecessor() {
+        if (js_vars.own_id_in_group == 1) {
+            return js_vars.num_players;
+        } else {
+            return js_vars.own_id_in_group - 1;
+        }
+    }
+
+    function get_successor() {
+        if (js_vars.own_id_in_group == js_vars.num_players) {
+            return 1;
+        } else {
+            return js_vars.own_id_in_group + 1;
+        }
+    }
+
+    function update_others_data(data) {
+        let predecessor = get_predecessor();
+        let successor = get_successor();
+
+        if (data["to_player"] == predecessor) {
+            othersdata.predecessor1_inventory = data["to_inventory"];
+        }
+        if (data["from_player"] == predecessor) {
+            othersdata.predecessor1_inventory = data["from_inventory"];
+        }
+
+        if (data["from_player"] == successor) {
+            othersdata.successor1_inventory = data["from_inventory"];
+        }
+        if (data["to_player"] == successor) {
+            othersdata.successor1_inventory = data["to_inventory"];
+        }
+
+        update_display()
+    }
     
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory;
@@ -220,6 +279,11 @@
         totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0) + " ECU";
         totalItemsSold.innerHTML = mydata.total_items_sold + " units";
         // totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
+
+        if (js_vars.show_info) {
+            predecessor1Inventory.innerHTML = othersdata.predecessor1_inventory;
+            successor1Inventory.innerHTML = othersdata.successor1_inventory;
+        }
     }
 
     function live_update_status(data) {
@@ -245,22 +309,9 @@
                 js_vars.info_highlight_timeout_seconds
             );
         }
-        // chain is shown
-        if (js_vars.show_chain){
-            let from_player_inventory = document.getElementById("p" + data['from_player'] + "_text");
-            let to_player_inventory = document.getElementById("p" + data['to_player'] + "_text");
-            let from_player_r = document.getElementById("p" + data['from_player'] + "_right");
-            let to_player_l = document.getElementById("p" + data['to_player'] + "_left");
-            from_player_inventory.textContent = data['from_inventory'];
-            to_player_inventory.textContent = data['to_inventory'];
-            
-            let color = data['transferred'] ? "#648FFF" : "#FFB000";
-            from_player_r.setAttribute("fill", color);
-            to_player_l.setAttribute("fill", color);
-            window.setTimeout(function() {
-                from_player_r.setAttribute("fill", "white");
-                to_player_l.setAttribute("fill", "white");
-            }, js_vars.info_highlight_timeout_seconds * 1000);
+        // always keep others data updated
+        if (js_vars.show_info) {
+            update_others_data(data);
         }
     }
     
@@ -284,14 +335,7 @@
             start_time: start_time_proposal
         });
     }
-    
-    function update_inventories(data) {
-        for (let player_id in data) {
-            let inventory = data[player_id];
-            let inventory_display = document.getElementById("p" + player_id + "_text");
-            inventory_display.textContent = inventory;
-        }
-    }
+
     
     function liveRecv(data) {
         // console.log("Received data: ", data["type"]);
@@ -308,11 +352,12 @@
             mydata.total_revenue = data['data']['revenue'];
             mydata.total_profit = data['data']['profit'];
             mydata.total_items_sold = data['data']['items_sold'];
+            if (js_vars.show_info) {
+                othersdata.predecessor1_inventory = data["data"]["pre_inventory"];
+                othersdata.successor1_inventory = data["data"]["suc_inventory"];
+            }
             update_display();
             // console.log(data['data']['chain_inventory']);
-            if (js_vars.show_chain) {
-                update_inventories(data['data']["chain_inventory"]);
-            }
         }
     }
      

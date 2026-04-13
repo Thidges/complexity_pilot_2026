@@ -1,16 +1,16 @@
 {{ block title }}
-    Results
+    Task Summary
 {{ endblock }}
 
 {{ block content }}
     <p>
         You started with {{ initial_balance }},<br>
-        delivered {{ num_items_delivered }} items to your successor,<br>
-        earning a total of {{ total_revenue|to0 }},<br>
-        and paid {{ total_cost|to0 }} inventory costs.
+        delivered {{ num_items_delivered }} items to your successor earning a total of {{ total_revenue|to0 }},<br>
+        paid {{ player.total_request_cost|to0  }} for requests, and
+        paid {{ player.total_inventory_cost|to0 }} for your inventory.
     </p>
     <p>
-        Your total earnings are {{ total_profit|to2 }}. This amount will be added to your completion fee.
+        Your total earnings are {{ total_profit|to0 }}. This amount will be added to your completion fee.
     </p>
     {{ formfields }}
     {{ next_button }}

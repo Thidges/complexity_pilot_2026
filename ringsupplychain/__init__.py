@@ -51,6 +51,8 @@ class Player(BasePlayer):
     init_time = models.FloatField()
     
     total_cost = models.CurrencyField(initial=0)
+    total_request_cost = models.CurrencyField(initial=0)
+    total_inventory_cost = models.CurrencyField(initial=0)
     total_revenue = models.CurrencyField(initial=0)
     total_profit = models.CurrencyField(initial=0)
     total_items_sold = models.IntegerField(initial=0)
@@ -67,6 +69,12 @@ class Player(BasePlayer):
             return self.group.group_size
         else:
             return self.id_in_group - 1
+
+    def get_successor(self):
+        if self.id_in_group == self.group.group_size:
+            return 1
+        else:
+            return self.id_in_group + 1
     
 class Requests(ExtraModel):
     created = models.FloatField()
@@ -142,19 +150,24 @@ def live_inventory(player):
 
     # calculate cost
     old_inventory = player.inventory
-    cost = time_delta * player.subsession.cost_per_second * old_inventory
+    inventory_cost = time_delta * player.subsession.cost_per_second * old_inventory
 
-    # update total cost
-    player.total_cost += cost
+    # update total costs
+    player.total_inventory_cost += inventory_cost
+    player.total_cost += inventory_cost
 
     # update balance
-    player.balance -= cost
+    player.balance -= inventory_cost
 
     # update profit
     player.total_profit = player.total_revenue - player.total_cost
 
     # update last inventory update time
     player.last_inventory_update = current_time
+
+    # inventories
+    predecessor = player.group.get_player_by_id(player.get_predecessor())
+    successor = player.group.get_player_by_id(player.get_successor())
 
     resp = {
         'type': 'init_response',
@@ -165,7 +178,8 @@ def live_inventory(player):
             'revenue': player.total_revenue,
             'profit': player.total_profit,
             'items_sold': player.total_items_sold,
-            'chain_inventory': {p.id_in_group: p.inventory for p in player.group.get_players()},
+            'pre_inventory': predecessor.inventory,
+            'suc_inventory': successor.inventory
         }
     }
     
@@ -190,6 +204,7 @@ def live_request(player, data):
     click_cost = subsession.cost_per_click
     give_to_player.balance -= click_cost
     give_to_player.total_cost += click_cost
+    give_to_player.total_request_cost += click_cost
     give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
 
     # Check if the take_from player has enough inventory
@@ -336,15 +351,8 @@ def finalize_round(group):
             # print('total_profit', player.total_profit)
         
         # store payment data on the participant
-        game_data = {
-            'ecu_earnings': int(player.total_profit),
-            'eur_earnings': float(player.total_profit.to_real_world_currency(subs.session)),
-            'round': player.round_number
-        }
-        if player.round_number == 1:
-            player.participant.vars['game_rounds'] = [game_data]
-        else:
-            player.participant.vars['game_rounds'].append(game_data)
+        player.participant.vars['ecu_earnings'] = int(player.total_profit)
+
         
 
 def start_time_check(player: Player, data):
@@ -470,7 +478,8 @@ class GameInstructions(Page):
 
         return {
             'exchange_rate': f"100 ECU = {hundred_ecu:.2f} {REAL_WORLD_CURRENCY_CODE}",
-            'num_participants': players_per_group if show_chain else "several",
+            'real_world_currency_code': REAL_WORLD_CURRENCY_CODE,
+            'group_size': players_per_group,
             'show_chain': show_chain,
             'DEBUG': DEBUG,
             'own_id_in_group': middle_pos,
@@ -478,8 +487,9 @@ class GameInstructions(Page):
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,
             'ecu_request_cost': ecu_request_cost,
+            'round_minutes': round_minutes,
             'round_seconds': round_seconds,
-            'round_minutes': round_minutes
+            'training_round_seconds': sess.config.get('training_round_seconds', 30),
         }
 
     @staticmethod
@@ -536,16 +546,26 @@ class Decision(Page):
     
     @staticmethod
     def js_vars(player):
+        predecessor = player.group.get_player_by_id(player.get_predecessor())
+        successor = player.group.get_player_by_id(player.get_successor())
+
         return {
             'own_id_in_group': player.id_in_group,
             'inventory_unit_cost_per_second': player.subsession.cost_per_second,
+            'pre_inventory': predecessor.inventory,
+            'suc_inventory': successor.inventory,
             **common_vars_for_template(player),
         }
     
     @staticmethod
     def vars_for_template(player):
+        predecessor = player.group.get_player_by_id(player.get_predecessor())
+        successor = player.group.get_player_by_id(player.get_successor())
+
         return {
-            **common_vars_for_template(player),
+            'pre_inventory': predecessor.inventory,
+            'suc_inventory': successor.inventory,
+            **common_vars_for_template(player)
         }
 
     @staticmethod
@@ -576,68 +596,6 @@ class Results(Page):
             **cv
         }
 
-class ResultsFigure(Page):
-    def js_vars(player):
-        subs = player.subsession
-
-        reqs = Requests.filter(
-            session=subs,
-            group_id=player.group.id_in_subsession,
-            round=player.round_number,
-            transferred=True
-        )
-        own_reqs = [req for req in reqs if req.requested_by_id == player.id_in_group or req.requested_from_id == player.id_in_group]
-
-        init_time = math.floor(player.init_time)
-        end_time = math.ceil(init_time + subs.round_seconds)
-    
-        batches_sold = defaultdict(list)
-        batches_received = defaultdict(list)
-        for req in own_reqs:
-            base_second = math.floor(req.created - init_time)
-            if req.requested_from_id == player.id_in_group:
-                # i sold something
-                batches_sold[base_second].append(req)
-            elif req.requested_by_id == player.id_in_group:
-                # i received something
-                batches_received[base_second].append(req)
-            
-        balance = list()
-        inventory = list()
-        
-        group = player.group
-        initial_cash = group.initial_cash
-        initial_stock = group.initial_stock
-        
-        for sec in range(subs.round_seconds + 1):
-            if sec == 0:
-                bal = initial_cash
-                inv = initial_stock
-            else:
-                bal = balance[sec-1]
-                inv = inventory[sec-1]
-
-            bal -= subs.cost_per_second * inv
-            
-            for req in batches_sold[sec]:
-                bal += req.units * subs.price_per_unit
-
-            for req in batches_received[sec]:
-                inv += req.units
-                
-            balance.append(bal)
-            inventory.append(inv)
-            
-
-        return {
-            'own_id_in_group': player.id_in_group,
-            'init_time': init_time,
-            'end_time': end_time,
-            'round_seconds': subs.round_seconds,
-            'balance': balance,
-            'inventory': inventory,
-        }
-        
 
 page_sequence = [
     GroupMatching,
