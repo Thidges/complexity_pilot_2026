@@ -59,13 +59,24 @@ SESSION_CONFIGS = [
     ),
     dict(
         name="full_experiment",
-        display_name="Full Experiment",
+        display_name="Full Experiment, 10 demo participants",
         app_sequence=[
             "intro",
             "ringsupplychain",
             "questionnaires"
         ],
         num_demo_participants=10,
+        **GAME_CONFIG
+    ),
+    dict(
+        name="full_experiment_20",
+        display_name="Full Experiment, 20 demo participants",
+        app_sequence=[
+            "intro",
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=20,
         **GAME_CONFIG
     )
 ]
