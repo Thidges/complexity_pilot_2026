@@ -57,9 +57,12 @@ class Player(BasePlayer):
     total_profit = models.CurrencyField(initial=0)
     total_items_sold = models.IntegerField(initial=0)
 
-    comp_request_cost = models.IntegerField()
-    comp_inventory_cost = models.IntegerField()
-    comp_revenue = models.IntegerField()
+    comp_request_cost = models.IntegerField(
+        label="Assume you make 2 requests of which 1 is successful and 1 is not successful. How many ECU did it cost to make these 2 requests?")
+    comp_inventory_cost = models.IntegerField(
+        label="Assume you hold 2 units in inventory for 2 seconds. How many ECU did it cost to hold this inventory?")
+    comp_revenue = models.IntegerField(
+        label="Assume you have 1 unit in your inventory. Your successor requests 1 unit from you. How many ECU do you earn from the transfer?")
     
     proposed_start_time = models.FloatField()
 
@@ -135,7 +138,29 @@ def creating_session(subsession):
     
     subsession.maximum_units = 10
     
+def comp_request_cost_error_message(player, value):
+    actual_cost = player.session.config.get('cost_per_click', 0) * 2
+    if value < actual_cost:
+        return "Check your calculation! The request cost you entered is too low."
+    if value > actual_cost:
+        return "Check your calculation! The request cost you entered is too high."
+    return None
 
+def comp_inventory_cost_error_message(player, value):
+    actual_cost = player.session.config.get('cost_per_second', 0) * 2 * 2  # 2 units times 2 seconds
+    if value < actual_cost:
+        return "Check your calculation! The inventory cost you entered is too low."
+    if value > actual_cost:
+        return "Check your calculation! The inventory cost you entered is too high."
+    return None
+
+def comp_revenue_error_message(player, value):
+    actual_revenue = player.session.config.get('price_per_unit', 0)
+    if value < actual_revenue:
+        return "Check your calculation! The revenue you entered is too low."
+    if value > actual_revenue:
+        return "Check your calculation! The revenue you entered is too high."
+    return None
 
 def live_inventory(player):
     # get current time
@@ -522,12 +547,6 @@ class TrainingRound(Page):
         }
 
 
-class TrainingFeedback(Page):
-    pass
-
-class TrainingWait(WaitPage):
-    pass
-        
 class RoundPreface(Page):
     def vars_for_template(player):
         return common_vars_for_template(player)
@@ -596,8 +615,8 @@ page_sequence = [
     GroupMatching,
     GameInstructions,
     TrainingRound,
-    TrainingFeedback,
-    TrainingWait,
+    # TrainingFeedback,
+    # TrainingWait,
     RoundPreface,
     JointStart, 
     Decision, 
