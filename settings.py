@@ -89,6 +89,39 @@ SESSION_CONFIGS = [
         ],
         num_demo_participants=20,
         **GAME_CONFIG
+    ),
+dict(
+        name="full_experiment_5_nc",
+        display_name="Full Experiment, 5 demo participants, no consent",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="full_experiment_nc",
+        display_name="Full Experiment, 10 demo participants, no consent",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=10,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="full_experiment_20_nc",
+        display_name="Full Experiment, 20 demo participants, no consent",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=20,
+        **GAME_CONFIG,
+        welcome_message=True
     )
 ]
 

@@ -34,6 +34,7 @@ class Subsession(BaseSubsession):
     info_highlight_timeout_seconds = models.IntegerField()
     countdown_seconds = models.IntegerField()
     maximum_units = models.IntegerField()
+    welcome_message = models.BooleanField(initial=False)
 
 class Group(BaseGroup):
     start_time = models.FloatField()
@@ -113,6 +114,7 @@ def creating_session(subsession):
     price_per_unit = sess.config.get('price_per_unit', None)
     show_chain = sess.config.get('show_chain', False)
     auto_play = sess.config.get('auto_play', False)
+    welcome_message = sess.config.get('welcome_message', False)
        
     total_seconds = countdown_seconds + round_seconds
     training_total_seconds = countdown_seconds + training_round_seconds
@@ -135,7 +137,8 @@ def creating_session(subsession):
     subsession.total_seconds = total_seconds
     subsession.training_total_seconds = training_total_seconds
     subsession.countdown_seconds = countdown_seconds
-    
+    subsession.welcome_message = welcome_message
+
     subsession.maximum_units = 10
     
 def comp_request_cost_error_message(player, value):
@@ -513,6 +516,8 @@ class GameInstructions(Page):
             'round_minutes': round_minutes,
             'round_seconds': round_seconds,
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
+            'participation_fee': sess.config.get('participation_fee', '0.00 EUR'),
+            'welcome_message': player.subsession.welcome_message,
         }
 
     @staticmethod

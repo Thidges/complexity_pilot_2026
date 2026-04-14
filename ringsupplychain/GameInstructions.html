@@ -1,8 +1,16 @@
 {{ block title }}
-    Instructions
+    {{ if welcome_message }}Welcome {{else}}Instructions{{endif}}
 {{ endblock }}
 
 {{ block content }}
+    {{ if welcome_message  }}
+    <p>
+        Thank you for participating in this experiment and thus supporting science. We expect the experiment to take less than 30 minutes. Upon full completion of the experiment, you will receive a completion fee of {{ participation_fee }}. In addition, you can earn a substantial bonus depending on your decisions and those of other participants.
+    </p>
+
+    <h2>Instructions</h2>
+    {{ endif }}
+
     <p>
         <b>Preface:</b> All monetary amounts in this study are shown in Experimental Currency Units (ECU), which will be converted to {{ real_world_currency_code }} at the end of the study with an exchange rate of {{ exchange_rate }}.
     </p>
