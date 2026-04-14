@@ -239,6 +239,7 @@ def live_request(player, data):
         from_time_delta = current_time - from_last_update
         from_old_inventory = take_from_player.inventory
         from_cost = from_time_delta * subsession.cost_per_second * from_old_inventory
+        take_from_player.total_inventory_cost += from_cost
         take_from_player.total_cost += from_cost
         
         # transfer to player costs
@@ -246,6 +247,7 @@ def live_request(player, data):
         to_time_delta = current_time - to_last_update
         to_old_inventory = give_to_player.inventory
         to_cost = to_time_delta * subsession.cost_per_second * to_old_inventory
+        give_to_player.total_inventory_cost += to_cost
         give_to_player.total_cost += to_cost
 
         # update inventory 
@@ -365,6 +367,7 @@ def finalize_round(group):
             cost = time_to_end_of_round * cost_per_second * old_inventory
 
             # update total cost, balance, and profit
+            player.total_inventory_cost += cost
             player.total_cost += cost
             player.balance -= cost
             player.total_profit = player.total_revenue - player.total_cost
