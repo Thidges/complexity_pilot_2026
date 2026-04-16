@@ -32,8 +32,8 @@ TREATMENTS = dict(
         initial_cash=300,
         show_info=False
     ),
-    AI_5 = dict(
-        treatment="AI_5",
+    PI_5 = dict(
+        treatment="PI_5",
         players_per_group=5,
         initial_stock=2,
         initial_cash=300,

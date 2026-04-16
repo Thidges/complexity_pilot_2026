@@ -38,8 +38,8 @@ class Player(BasePlayer):
     #     ('master', "Master's Degree"),
     #     ('phd', "PhD or equivalent"),
     #     ('other', 'other')])
-    risk_general = models.IntegerField(label="How would you rate your willingness to take risks generally in life?", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 8)])
-    instructions_understood = models.IntegerField(label="How well did you understand the instructions in the experiment?", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 6)])
+    risk_general = models.IntegerField(label="How would you rate your willingness to take risks generally in life? (1 – never, 7 – always)”", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 8)])
+    instructions_understood = models.IntegerField(label="How well did you understand the instructions in the experiment? (1 – not at all, 5 – everything was clear)", widget=widgets.RadioSelectHorizontal, choices=[i for i in range(1, 6)])
     # specific_strategy = models.BooleanField(label="Did you follow any specific strategy in this experiment?", widget=widgets.RadioSelect, choices=[(True, 'Yes'), (False, 'No')])
     strategy_text = models.LongStringField(label="Briefly describe this strategy you applied in this study.")
     comments = models.LongStringField(label="Is there anything you like to share about the experiment (suggestions, remaining questions, other feedback)?", blank=True)

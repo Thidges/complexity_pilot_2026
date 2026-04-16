@@ -91,11 +91,6 @@
                     Successor
                 </h4>
                 <div class="card-body outer_box">
-                    {% if show_info %}
-                    <p>
-                        Inventory: <span id="successor1_inventory">{{ suc_inventory }}</span> units
-                    </p>
-                    {% endif %}
                     <div class="info_box text-center" id="successor1_info">
                         <span id="successor1_transfer_status"></span><br>
                         <span id="successor1_transfer_units"></span><br>
@@ -160,14 +155,14 @@
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
 
-    let predecessor1Inventory, successor1Inventory, othersdata;
+    let predecessor1Inventory, othersdata;
 
     if (js_vars.show_info) {
         predecessor1Inventory = document.getElementById("predecessor1_inventory");
-        successor1Inventory = document.getElementById("successor1_inventory");
+        // successor1Inventory = document.getElementById("successor1_inventory");
         othersdata = {
             "predecessor1_inventory": js_vars.predecessor1_inventory,
-            "successor1_inventory": js_vars.successor1_inventory,
+            // "successor1_inventory": js_vars.successor1_inventory,
         }
     }
     
@@ -282,7 +277,7 @@
 
         if (js_vars.show_info) {
             predecessor1Inventory.innerHTML = othersdata.predecessor1_inventory;
-            successor1Inventory.innerHTML = othersdata.successor1_inventory;
+            // successor1Inventory.innerHTML = othersdata.successor1_inventory;
         }
     }
 
@@ -354,7 +349,7 @@
             mydata.total_items_sold = data['data']['items_sold'];
             if (js_vars.show_info) {
                 othersdata.predecessor1_inventory = data["data"]["pre_inventory"];
-                othersdata.successor1_inventory = data["data"]["suc_inventory"];
+                // othersdata.successor1_inventory = data["data"]["suc_inventory"];
             }
             update_display();
             // console.log(data['data']['chain_inventory']);

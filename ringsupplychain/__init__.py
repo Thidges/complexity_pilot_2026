@@ -427,10 +427,10 @@ def start_time_check(player: Player, data):
                 requested_by_id=p.id_in_group,
                 units=0,
                 transferred=False,
-                from_inventory=0,
-                from_balance=0,
-                to_inventory=0,
-                to_balance=0,
+                from_inventory=group.initial_stock,
+                from_balance=group.initial_cash,
+                to_inventory=group.initial_stock,
+                to_balance=group.initial_cash,
                 kind='init'
             )
 
@@ -467,7 +467,7 @@ class GroupMatching(WaitPage):
 
         groups = subsession.get_groups()
         groups[0].treatment = 'NI_5'
-        groups[1].treatment = 'AI_5'
+        groups[1].treatment = 'PI_5'
         groups[2].treatment = 'NI_10'
         
         for group in groups:
