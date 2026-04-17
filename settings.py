@@ -43,53 +43,53 @@ TREATMENTS = dict(
 
 
 SESSION_CONFIGS = [
-    dict(
-        name="intro",
-        display_name="Introduction",
-        app_sequence=["intro"],
-        num_demo_participants=5,
-        **GAME_CONFIG
-    ),
-    dict(
-        name="questionnaire",
-        display_name="Final Questionnaire + Payments",
-        app_sequence=["questionnaires"],
-        num_demo_participants=1,
-        **GAME_CONFIG
-    ),
-    dict(
-        name="full_experiment_5",
-        display_name="Full Experiment, 5 demo participants",
-        app_sequence=[
-            "intro",
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=5,
-        **GAME_CONFIG
-    ),
-    dict(
-        name="full_experiment",
-        display_name="Full Experiment, 10 demo participants",
-        app_sequence=[
-            "intro",
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=10,
-        **GAME_CONFIG
-    ),
-    dict(
-        name="full_experiment_20",
-        display_name="Full Experiment, 20 demo participants",
-        app_sequence=[
-            "intro",
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=20,
-        **GAME_CONFIG
-    ),
+    # dict(
+    #     name="intro",
+    #     display_name="Introduction",
+    #     app_sequence=["intro"],
+    #     num_demo_participants=5,
+    #     **GAME_CONFIG
+    # ),
+    # dict(
+    #     name="questionnaire",
+    #     display_name="Final Questionnaire + Payments",
+    #     app_sequence=["questionnaires"],
+    #     num_demo_participants=1,
+    #     **GAME_CONFIG
+    # ),
+    # dict(
+    #     name="full_experiment_5",
+    #     display_name="Full Experiment, 5 demo participants",
+    #     app_sequence=[
+    #         "intro",
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     num_demo_participants=5,
+    #     **GAME_CONFIG
+    # ),
+    # dict(
+    #     name="full_experiment",
+    #     display_name="Full Experiment, 10 demo participants",
+    #     app_sequence=[
+    #         "intro",
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     num_demo_participants=10,
+    #     **GAME_CONFIG
+    # ),
+    # dict(
+    #     name="full_experiment_20",
+    #     display_name="Full Experiment, 20 demo participants",
+    #     app_sequence=[
+    #         "intro",
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     num_demo_participants=20,
+    #     **GAME_CONFIG
+    # ),
 dict(
         name="full_experiment_5_nc",
         display_name="Full Experiment, 5 demo participants, no consent",
@@ -130,8 +130,8 @@ ROOMS = [
     dict(
         name='room1',
         display_name='Room 1',
-        # participant_label_file='_rooms/room1.txt',
-        # welcome_page="_welcome_pages/RoomWelcomePage.html",
+        participant_label_file='_rooms/room1.txt',
+        welcome_page="_welcome_pages/RoomWelcomePage.html",
     )
 ]
 
@@ -141,7 +141,7 @@ ROOMS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=0.0005, participation_fee=5.00, doc=""
+    real_world_currency_per_point=0.0015, participation_fee=5.00, doc=""
 )
 
 PARTICIPANT_FIELDS = ['finished']

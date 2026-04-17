@@ -167,13 +167,13 @@
     }
     
     oTreeTimer.style.display = "none";
-    startTimer.style.display = "none";
+    // startTimer.style.display = "none";
     requestButton.disabled = true;
     
     function prep_timer(delay_milliseconds) {
         let currentDate = new Date();
         if (delay_milliseconds > 0) {
-            startTimer.style.display = "block";
+            // startTimer.style.display = "block";
             $('.start-timer__time-left').countdown(currentDate.valueOf() + delay_milliseconds)
             .on('update.countdown', function (event) {
                 // %-N is "Total count of minutes till the end, non-padded"

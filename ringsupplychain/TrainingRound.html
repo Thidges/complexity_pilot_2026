@@ -186,8 +186,10 @@
     // setup timers
     let currentDate = new Date();
     let remainingTimeoutSeconds = {{ view.remaining_timeout_seconds()|json }};
-    let remainingSeconds = remainingTimeoutSeconds - js_vars.training_round_seconds - js_vars.start_delay_seconds;
+    
+    let remainingSeconds = remainingTimeoutSeconds - js_vars.training_round_seconds - js_vars.start_delay_seconds + 1;
     let milliseconds = Math.floor(remainingSeconds * 1000);
+    
     if (remainingSeconds > 0) {
         oTreeTimer.style.display = "none";
         $('.start-timer__time-left').countdown(currentDate.valueOf() + milliseconds)
