@@ -1,16 +1,23 @@
-{% extends "otree/Base.html" %}
-
-{% block body_main %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/bootstrap5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/otree/css/theme2.css">
+</head>
+<body>
     <div class="container m-5">
         <h2>
-            {% block title %}{{ 'Welcome'|gettext }}{% endblock %}
+            Welcome
         </h2>
         <div>
             <form method="get">
-                {% if invalid_label %}
-                    {% comment %}Translators: If the user enters an invalid participant label{% endcomment %}
-                    <p class="error text-danger">{{ 'This participant label was not found'|gettext }}</p>
-                {% endif %}
+                <div id="error_box" style="display:none;">
+                    <p class="error text-danger" id="error_message"></p>
+                </div>
+
                 <p>
                   Please enter the participant number you have been assigned in the Zoom session.<br>
                   <em>Example: If you have been renamed to <b>Participant 1</b>, enter: <b>1</b></em></p>
@@ -19,8 +26,39 @@
                 <input type="text" id="participant_label"
                        name="participant_label" class="form-control"/>
                 <br/>
-                {% next_button %}
+                <button type="button" class="btn btn-primary" id="submit_form">Start</button>
             </form>
         </div>
     </div>
-{% endblock %}
+
+    <script>
+        document.getElementById('submit_form').addEventListener('click', function () {
+            var label = document.getElementById('participant_label').value.trim();
+            var errorBox = document.getElementById('error_box');
+            var errorMessage = document.getElementById('error_message');
+
+            fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({participant_label: label})
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.status === 'ok') {
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('welcome_page_ok', '1');
+                    url.searchParams.set('participant_label', label);
+                    window.location.href = url.toString();
+                } else if (data.errors && data.errors.participant_label) {
+                    errorMessage.textContent = data.errors.participant_label;
+                    errorBox.style.display = '';
+                }
+            })
+            .catch(function () {
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorBox.style.display = '';
+            });
+        });
+    </script>
+    </body>
+</html>

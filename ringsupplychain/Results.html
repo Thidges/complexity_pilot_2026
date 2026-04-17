@@ -10,7 +10,7 @@
         paid {{ player.total_inventory_cost|to0 }} for your inventory.
     </p>
     <p>
-        Your total earnings are {{ total_profit|to0 }}.
+        Your final balance is {{ player.balance|to0 }}.
     </p>
     {{ formfields }}
     {{ next_button }}

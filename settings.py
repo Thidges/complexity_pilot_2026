@@ -5,7 +5,7 @@ GAME_CONFIG = dict(
     info_highlight_timeout_seconds=1,
     countdown_seconds=5,
     training_round_seconds=60,
-    round_seconds=180, # 300
+    round_seconds=180, # 180
     start_delay_seconds=1,
     leave_seconds=65,
     cost_per_second=5,
@@ -90,9 +90,20 @@ SESSION_CONFIGS = [
     #     num_demo_participants=20,
     #     **GAME_CONFIG
     # ),
-dict(
+    dict(
+        name="full_experiment",
+        display_name="1. Full Pilot Experiment - Use this!",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
         name="full_experiment_5_nc",
-        display_name="Full Experiment, 5 demo participants, no consent",
+        display_name="(DEMO 5 participants, no consent)",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -103,7 +114,7 @@ dict(
     ),
     dict(
         name="full_experiment_nc",
-        display_name="Full Experiment, 10 demo participants, no consent",
+        display_name="(DEMO 10 participants, no consent)",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -114,7 +125,7 @@ dict(
     ),
     dict(
         name="full_experiment_20_nc",
-        display_name="Full Experiment, 20 demo participants, no consent",
+        display_name="(DEMO 20 participants, no consent)",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -131,7 +142,7 @@ ROOMS = [
         name='room1',
         display_name='Room 1',
         participant_label_file='_rooms/room1.txt',
-        welcome_page="_welcome_pages/RoomWelcomePage.html",
+        welcome_page="otree/RoomInputLabel.html",
     )
 ]
 
@@ -144,7 +155,7 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=0.0015, participation_fee=5.00, doc=""
 )
 
-PARTICIPANT_FIELDS = ['finished']
+PARTICIPANT_FIELDS = ['finished', 'final_balance', 'ecu_earnings']
 SESSION_FIELDS = []
 
 # ISO-639 code

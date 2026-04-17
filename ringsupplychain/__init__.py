@@ -374,15 +374,19 @@ def finalize_round(group):
             player.total_cost += cost
             player.balance -= cost
             player.total_profit = player.total_revenue - player.total_cost
+
             
             # print('old_inventory', old_inventory)
             # print('cost', cost)
             # print('total_cost', player.total_cost)
             # print('balance', player.balance)
             # print('total_profit', player.total_profit)
-        
+
+        player.payoff = player.balance
+
         # store payment data on the participant
         player.participant.vars['ecu_earnings'] = int(player.total_profit)
+        player.participant.vars['final_balance'] = player.balance
 
         
 

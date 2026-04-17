@@ -69,8 +69,9 @@ class FinalScreen(Page):
         sess = player.session
         pppf = player.participant.payoff_plus_participation_fee()
         ecu_earnings = player.participant.vars.get('ecu_earnings', 0)
-        if ecu_earnings > 0:
-            rwc_earnings = round(int(ecu_earnings) * sess.config['real_world_currency_per_point'], 2)
+        final_balance = player.participant.vars.get('final_balance', 0)
+        if final_balance > 0:
+            rwc_earnings = round(int(final_balance) * sess.config['real_world_currency_per_point'], 2)
         else:
             rwc_earnings = 0
 
@@ -79,6 +80,7 @@ class FinalScreen(Page):
         return {
             'participation_fee': sess.config['participation_fee'],
             'final_payment': pppf,
+            'final_balance': final_balance,
             'ecu_earnings': ecu_earnings,
             'rwc_earnings': f"€{rwc_earnings:.2f}",
             'payment_link': payment_link,

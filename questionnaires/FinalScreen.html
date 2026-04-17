@@ -8,10 +8,10 @@
         Thank you very much for participating in this experiment!
     </p>
     <p>
-        Your final balance is {{ ecu_earnings }} ECU.
+        Your final balance is {{ final_balance }} ECU.
     </p>
 
-    {{ if ecu_earnings >= 0 }}
+    {{ if final_balance >= 0 }}
         <p>
             This amount converts to a bonus of {{ rwc_earnings }}. Together with the completion fee of {{ participation_fee }}, your payment will be {{ final_payment }}.
         </p>
