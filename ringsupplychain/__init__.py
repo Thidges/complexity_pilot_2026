@@ -382,7 +382,8 @@ def finalize_round(group):
             # print('balance', player.balance)
             # print('total_profit', player.total_profit)
 
-        player.payoff = player.balance
+        if player.balance > 0:
+            player.payoff = player.balance
 
         # store payment data on the participant
         player.participant.vars['ecu_earnings'] = int(player.total_profit)
