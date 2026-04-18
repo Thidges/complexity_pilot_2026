@@ -36,13 +36,15 @@ class Subsession(BaseSubsession):
     maximum_units = models.IntegerField()
     welcome_message = models.BooleanField(initial=False)
 
-class Group(BaseGroup):
-    start_time = models.FloatField()
+    initial_stock = models.IntegerField()
+    initial_cash = models.CurrencyField()
     group_size = models.IntegerField()
     treatment = models.StringField()
     show_info = models.BooleanField(initial=False)
-    initial_stock = models.IntegerField()
-    initial_cash = models.CurrencyField()
+
+
+class Group(BaseGroup):
+    start_time = models.FloatField()
 
 class Player(BasePlayer):
     inventory = models.IntegerField()
@@ -70,12 +72,12 @@ class Player(BasePlayer):
     
     def get_predecessor(self):
         if self.id_in_group == 1:
-            return self.group.group_size
+            return len(self.group.get_players())
         else:
             return self.id_in_group - 1
 
     def get_successor(self):
-        if self.id_in_group == self.group.group_size:
+        if self.id_in_group == len(self.group.get_players()):
             return 1
         else:
             return self.id_in_group + 1
@@ -115,12 +117,21 @@ def creating_session(subsession):
     show_chain = sess.config.get('show_chain', False)
     auto_play = sess.config.get('auto_play', False)
     welcome_message = sess.config.get('welcome_message', False)
+
+    treatment = sess.config.get('treatment_name', None)
+    show_info = sess.config.get('show_info', None)
+    group_size = sess.config.get('players_per_group', None)
+    initial_stock = sess.config.get('initial_stock', None)
+    initial_cash = sess.config.get('initial_cash', None)
        
     total_seconds = countdown_seconds + round_seconds
     training_total_seconds = countdown_seconds + training_round_seconds
     
-    if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds]):
+    if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds, treatment, initial_cash, initial_stock, group_size, show_info]):
         raise ValueError("session not configured correctly")
+
+    if len(subsession.get_players()) % group_size != 0:
+        raise ValueError("The number of players must be divisible by the group size")
     
     # assign variables
     subsession.cost_per_second = cost_per_second
@@ -138,6 +149,11 @@ def creating_session(subsession):
     subsession.training_total_seconds = training_total_seconds
     subsession.countdown_seconds = countdown_seconds
     subsession.welcome_message = welcome_message
+    subsession.show_info = show_info
+    subsession.treatment = treatment
+    subsession.group_size = group_size
+    subsession.initial_stock = initial_stock
+    subsession.initial_cash = initial_cash
 
     subsession.maximum_units = 10
     
@@ -318,7 +334,6 @@ def live_request(player, data):
 
 def common_vars_for_template(player):
     subs = player.subsession
-    group = player.group
     return {
         'balance': player.balance,
         'inventory': int(player.inventory),
@@ -327,9 +342,9 @@ def common_vars_for_template(player):
         'total_revenue': player.total_revenue,
         'total_profit': player.total_profit,
         'total_items_sold': player.total_items_sold,
-        'num_players': group.group_size,
-        'show_info': group.show_info,
-        'treatment': group.treatment,
+        'num_players': subs.group_size,
+        'show_info': subs.show_info,
+        'treatment': subs.treatment,
         'cost_per_click': subs.cost_per_click,
         'show_chain': subs.show_chain,
         'auto_play': subs.auto_play,
@@ -403,7 +418,7 @@ def start_time_check(player: Player, data):
         if p.field_maybe_none('proposed_start_time') is not None:
             proposed_start_times.append(p.proposed_start_time)
 
-    if len(proposed_start_times) == group.group_size:
+    if len(proposed_start_times) == len(group_players):
         if player.group.field_maybe_none('start_time') is not None:
             return {0: {
                 'type': 'start_time_decision',
@@ -432,10 +447,10 @@ def start_time_check(player: Player, data):
                 requested_by_id=p.id_in_group,
                 units=0,
                 transferred=False,
-                from_inventory=group.initial_stock,
-                from_balance=group.initial_cash,
-                to_inventory=group.initial_stock,
-                to_balance=group.initial_cash,
+                from_inventory=subs.initial_stock,
+                from_balance=subs.initial_cash,
+                to_inventory=subs.initial_stock,
+                to_balance=subs.initial_cash,
                 kind='init'
             )
 
@@ -463,27 +478,20 @@ class GroupMatching(WaitPage):
     @staticmethod
     def after_all_players_arrive(subsession):
         players = subsession.get_players()
-        shuffled_players = shuffled(players)
-        
-        first = shuffled_players[0:5]
-        second = shuffled_players[5:10]
-        third = shuffled_players[10:20]
-        subsession.set_group_matrix([first, second, third])
 
-        groups = subsession.get_groups()
-        groups[0].treatment = 'NI_5'
-        groups[1].treatment = 'PI_5'
-        groups[2].treatment = 'NI_10'
-        
-        for group in groups:
-            group.show_info = TREATMENTS[group.treatment]['show_info']
-            group.group_size = TREATMENTS[group.treatment]['players_per_group']
-            group.initial_stock = TREATMENTS[group.treatment]['initial_stock']
-            group.initial_cash = TREATMENTS[group.treatment]['initial_cash']
-            
+        # get a list with the numbers from 1 to len(players)
+        # then chop it into equally sized ranges of subsession.group_size
+
+        list_of_groups = [
+            list(range(i, i + subsession.group_size))
+            for i in range(1, len(players) - subsession.group_size + 2, subsession.group_size)
+        ]
+
+        subsession.set_group_matrix(list_of_groups)
+
         for player in players:
-            player.inventory = TREATMENTS[player.group.treatment]['initial_stock']
-            player.balance = TREATMENTS[player.group.treatment]['initial_cash']
+            player.inventory = subsession.initial_stock
+            player.balance = subsession.initial_cash
             
 
 class GameInstructions(Page):
@@ -498,9 +506,10 @@ class GameInstructions(Page):
 
     def vars_for_template(player):
         sess = player.session
+        subs = player.subsession
         rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
         hundred_ecu = 100 * rwc_pp
-        players_per_group = player.group.group_size
+        players_per_group =subs.group_size
 
         ecu_earn = sess.config.get('price_per_unit', 10)
         ecu_inventory_cost = sess.config.get('cost_per_second', 5)
@@ -514,7 +523,7 @@ class GameInstructions(Page):
             'real_world_currency_code': REAL_WORLD_CURRENCY_CODE,
             'group_size': players_per_group,
             'DEBUG': DEBUG,
-            'ecu_endowment': player.group.initial_cash,
+            'ecu_endowment': subs.initial_cash,
             'ecu_earn': ecu_earn,
             'ecu_inventory_cost': ecu_inventory_cost,
             'ecu_request_cost': ecu_request_cost,
@@ -522,7 +531,7 @@ class GameInstructions(Page):
             'round_seconds': round_seconds,
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
             'participation_fee': sess.config.get('participation_fee', '0.00 EUR'),
-            'welcome_message': player.subsession.welcome_message,
+            'welcome_message': subs.welcome_message,
         }
 
     @staticmethod
@@ -618,7 +627,7 @@ class Results(Page):
         items_delivered = player.total_revenue / subs.price_per_unit if subs.price_per_unit > 0 else 0
 
         return {
-            'initial_balance': player.group.initial_cash,
+            'initial_balance': subs.initial_cash,
             'num_items_delivered': int(items_delivered),
             **cv
         }

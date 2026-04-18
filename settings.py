@@ -1,19 +1,19 @@
 from os import environ
 
 GAME_CONFIG = dict(
-    request_timeout_seconds=0,
-    info_highlight_timeout_seconds=1,
-    countdown_seconds=5,
-    training_round_seconds=60,
-    round_seconds=180, # 180
-    start_delay_seconds=1,
-    leave_seconds=65,
     cost_per_second=5,
     cost_per_click=25,
     price_per_unit=100,
+    payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_0U6FdR5Qwaux0RE",
+    training_round_seconds=60,
+    round_seconds=180,  # 180
+    countdown_seconds=5,
+    request_timeout_seconds=0,
+    info_highlight_timeout_seconds=1,
+    start_delay_seconds=1,
+    leave_seconds=65,
     maximum_units_in_play=10,
     show_chain=False,
-    payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_0U6FdR5Qwaux0RE",
 )
 
 
@@ -90,50 +90,49 @@ SESSION_CONFIGS = [
     #     num_demo_participants=20,
     #     **GAME_CONFIG
     # ),
+    # dict(
+    #     name="full_experiment",
+    #     display_name="1. Full Pilot Experiment - Use this!",
+    #     app_sequence=[
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     num_demo_participants=5,
+    #     **GAME_CONFIG,
+    #     welcome_message=True
+    # ),
     dict(
-        name="full_experiment",
-        display_name="1. Full Pilot Experiment - Use this!",
+        name="full_experiment_5_ni",
+        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
         ],
         num_demo_participants=5,
+        treatment_name="NI",
+        players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
+        show_info=False,
         **GAME_CONFIG,
-        welcome_message=True
+        welcome_message=True,
     ),
     dict(
-        name="full_experiment_5_nc",
-        display_name="(DEMO 5 participants, no consent)",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=5,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
-    dict(
-        name="full_experiment_nc",
-        display_name="(DEMO 10 participants, no consent)",
+        name="full_experiment_5_pi",
+        display_name="300 cash, 2 inventory, 25 per click, 5 per second, predecessor info",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
         ],
         num_demo_participants=10,
+        treatment_name="PI",
+        players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
+        show_info=True,
         **GAME_CONFIG,
-        welcome_message=True
+        welcome_message=True,
     ),
-    dict(
-        name="full_experiment_20_nc",
-        display_name="(DEMO 20 participants, no consent)",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=20,
-        **GAME_CONFIG,
-        welcome_message=True
-    )
 ]
 
 # Rooms
