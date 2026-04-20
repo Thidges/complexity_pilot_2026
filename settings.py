@@ -102,8 +102,8 @@ SESSION_CONFIGS = [
     #     welcome_message=True
     # ),
     dict(
-        name="full_experiment_5_ni",
-        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info",
+        name="full_experiment_5_ni_emph",
+        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info, emphasize symmetry",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -114,12 +114,30 @@ SESSION_CONFIGS = [
         initial_stock=2,
         initial_cash=300,
         show_info=False,
+        emphasize_symmetry=False,
+        **GAME_CONFIG,
+        welcome_message=True,
+    ),
+    dict(
+        name="full_experiment_5_ni",
+        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info, no emphasis",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=5,
+        treatment_name="NI",
+        players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
+        show_info=False,
+        emphasize_symmetry=False,
         **GAME_CONFIG,
         welcome_message=True,
     ),
     dict(
         name="full_experiment_5_pi",
-        display_name="300 cash, 2 inventory, 25 per click, 5 per second, predecessor info",
+        display_name="300 cash, 2 inventory, 25 per click, 5 per second, predecessor info, no emphasis",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -130,6 +148,7 @@ SESSION_CONFIGS = [
         initial_stock=2,
         initial_cash=300,
         show_info=True,
+        emphasize_symmetry=False,
         **GAME_CONFIG,
         welcome_message=True,
     ),

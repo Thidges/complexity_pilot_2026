@@ -1,11 +1,8 @@
-import json
-import math
 import random
 import time
-from collections import defaultdict
 
 from otree.api import *
-from otree.settings import DEBUG, TREATMENTS, REAL_WORLD_CURRENCY_CODE
+from otree.settings import DEBUG, REAL_WORLD_CURRENCY_CODE
 
 doc = """
 Your app description
@@ -35,6 +32,7 @@ class Subsession(BaseSubsession):
     countdown_seconds = models.IntegerField()
     maximum_units = models.IntegerField()
     welcome_message = models.BooleanField(initial=False)
+    emphasize_symmetry = models.BooleanField(initial=False)
 
     initial_stock = models.IntegerField()
     initial_cash = models.CurrencyField()
@@ -98,9 +96,6 @@ class Requests(ExtraModel):
     kind = models.StringField(choices=['request', 'init'], default='request')
 
 # FUNCTIONS
-def shuffled(l):
-    random.shuffle(l)
-    return l
 
 def creating_session(subsession):
     sess = subsession.session
@@ -117,6 +112,7 @@ def creating_session(subsession):
     show_chain = sess.config.get('show_chain', False)
     auto_play = sess.config.get('auto_play', False)
     welcome_message = sess.config.get('welcome_message', False)
+    emphasize_symmetry = sess.config.get('emphasize_symmetry', False)
 
     treatment = sess.config.get('treatment_name', None)
     show_info = sess.config.get('show_info', None)
@@ -154,6 +150,7 @@ def creating_session(subsession):
     subsession.group_size = group_size
     subsession.initial_stock = initial_stock
     subsession.initial_cash = initial_cash
+    subsession.emphasize_symmetry = emphasize_symmetry
 
     subsession.maximum_units = 10
     
@@ -356,6 +353,7 @@ def common_vars_for_template(player):
         'request_button_timeout_seconds': subs.request_timeout_seconds,
         'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
         'countdown_seconds': subs.countdown_seconds,
+        'emphasize_symmetry': subs.emphasize_symmetry,
         'DEBUG': DEBUG
     }
 
