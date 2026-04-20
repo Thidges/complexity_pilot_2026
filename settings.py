@@ -114,7 +114,7 @@ SESSION_CONFIGS = [
         initial_stock=2,
         initial_cash=300,
         show_info=False,
-        emphasize_symmetry=False,
+        emphasize_symmetry=True,
         **GAME_CONFIG,
         welcome_message=True,
     ),
