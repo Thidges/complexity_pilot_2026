@@ -1,8 +1,5 @@
-import json
-import math
 import random
 import time
-from collections import defaultdict
 
 from otree.api import *
 from otree.settings import DEBUG, TREATMENTS, REAL_WORLD_CURRENCY_CODE
@@ -35,6 +32,7 @@ class Subsession(BaseSubsession):
     countdown_seconds = models.IntegerField()
     maximum_units = models.IntegerField()
     welcome_message = models.BooleanField(initial=False)
+    emphasize_symmetry = models.BooleanField(initial=False)
 
 class Group(BaseGroup):
     start_time = models.FloatField()
@@ -341,6 +339,7 @@ def common_vars_for_template(player):
         'request_button_timeout_seconds': subs.request_timeout_seconds,
         'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
         'countdown_seconds': subs.countdown_seconds,
+        'emphasize_symmetry': subs.emphasize_symmetry,
         'DEBUG': DEBUG
     }
 
@@ -464,7 +463,7 @@ class GroupMatching(WaitPage):
     def after_all_players_arrive(subsession):
         players = subsession.get_players()
         shuffled_players = shuffled(players)
-        
+
         first = shuffled_players[0:5]
         second = shuffled_players[5:10]
         third = shuffled_players[10:20]
@@ -474,13 +473,13 @@ class GroupMatching(WaitPage):
         groups[0].treatment = 'NI_5'
         groups[1].treatment = 'PI_5'
         groups[2].treatment = 'NI_10'
-        
+
         for group in groups:
             group.show_info = TREATMENTS[group.treatment]['show_info']
             group.group_size = TREATMENTS[group.treatment]['players_per_group']
             group.initial_stock = TREATMENTS[group.treatment]['initial_stock']
             group.initial_cash = TREATMENTS[group.treatment]['initial_cash']
-            
+
         for player in players:
             player.inventory = TREATMENTS[player.group.treatment]['initial_stock']
             player.balance = TREATMENTS[player.group.treatment]['initial_cash']

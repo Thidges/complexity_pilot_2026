@@ -10,10 +10,17 @@
 
     <h2>Main Task</h2>
 
-    <p>
-        Your starting balance is {{ balance }}. <br>
-        Your starting inventory is {{ inventory }} units.
-    </p>
+    {% if emphasize_symmetry %}
+        <p>
+            Your and all other participants start with a balance of {{ balance }}. <br>
+            Your and all other participants start with an inventory of {{ inventory }} units.
+        </p>
+    {% else %}
+        <p>
+            You start with a balance of {{ balance }}. <br>
+            You start with an inventory of {{ inventory }} units.
+        </p>
+    {% endif %}
     <p>
         Your choices in this task affect your payment!
     </p>
