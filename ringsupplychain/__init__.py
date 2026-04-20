@@ -530,6 +530,7 @@ class GameInstructions(Page):
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
             'participation_fee': sess.config.get('participation_fee', '0.00 EUR'),
             'welcome_message': subs.welcome_message,
+            'emphasize_symmetry': subs.emphasize_symmetry
         }
 
     @staticmethod

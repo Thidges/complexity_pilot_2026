@@ -1,8 +1,6 @@
 from os import environ
 
 GAME_CONFIG = dict(
-    cost_per_second=5,
-    cost_per_click=25,
     price_per_unit=100,
     payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_0U6FdR5Qwaux0RE",
     training_round_seconds=60,
@@ -102,8 +100,27 @@ SESSION_CONFIGS = [
     #     welcome_message=True
     # ),
     dict(
+        name="full_experiment_5_ni_no_emph",
+        display_name="No Info: 25 per click, 5 per second, no emphasis",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=5,
+        treatment_name="NI",
+        players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
+        show_info=False,
+        emphasize_symmetry=False,
+        cost_per_second=5,
+        cost_per_click=25,
+        **GAME_CONFIG,
+        welcome_message=True,
+    ),
+    dict(
         name="full_experiment_5_ni_emph",
-        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info, emphasize symmetry",
+        display_name="No Info: 25 per click, 5 per second, symmetry emphasis",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -115,12 +132,14 @@ SESSION_CONFIGS = [
         initial_cash=300,
         show_info=False,
         emphasize_symmetry=True,
+        cost_per_second=5,
+        cost_per_click=25,
         **GAME_CONFIG,
         welcome_message=True,
     ),
     dict(
-        name="full_experiment_5_ni",
-        display_name="300 cash, 2 inventory, 25 per click, 5 per second, no info, no emphasis",
+        name="full_experiment_5_ni_emph_1pc",
+        display_name="No Info: 1 per click, 5 per second, symmetry emphasis",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
@@ -131,24 +150,47 @@ SESSION_CONFIGS = [
         initial_stock=2,
         initial_cash=300,
         show_info=False,
-        emphasize_symmetry=False,
+        emphasize_symmetry=True,
+        cost_per_second=5,
+        cost_per_click=1,
         **GAME_CONFIG,
         welcome_message=True,
     ),
     dict(
-        name="full_experiment_5_pi",
-        display_name="300 cash, 2 inventory, 25 per click, 5 per second, predecessor info, no emphasis",
+        name="full_experiment_5_ni_emph_1ps",
+        display_name="No Info: 25 per click, 1 per second, symmetry emphasis",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
         ],
-        num_demo_participants=10,
-        treatment_name="PI",
+        num_demo_participants=5,
+        treatment_name="NI",
         players_per_group=5,
         initial_stock=2,
         initial_cash=300,
-        show_info=True,
-        emphasize_symmetry=False,
+        show_info=False,
+        emphasize_symmetry=True,
+        cost_per_second=1,
+        cost_per_click=25,
+        **GAME_CONFIG,
+        welcome_message=True,
+    ),
+    dict(
+        name="full_experiment_5_ni_emph_1ps_1pc",
+        display_name="No Info: 1 per click, 1 per second, symmetry emphasis",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        num_demo_participants=5,
+        treatment_name="NI",
+        players_per_group=5,
+        initial_stock=2,
+        initial_cash=300,
+        show_info=False,
+        emphasize_symmetry=True,
+        cost_per_second=1,
+        cost_per_click=1,
         **GAME_CONFIG,
         welcome_message=True,
     ),

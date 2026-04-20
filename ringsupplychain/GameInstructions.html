@@ -54,13 +54,16 @@
         {{ endif }}
         <li>Your ECU balance adjusts accordingly. Technically, it can go negative, but you can also recover.</li>
     </ul>
+    {% if emphasize_symmetry %}
+        <p>All participants start with the same balance of ECU and the same number of units in inventory.</p>
+    {% endif %}
 
     <p>
         <b>Duration:</b> The task ends after {{ round_seconds }} seconds ({{ round_minutes|to0 }} minutes).
     </p>
 
     <p>
-        <br>Training:</b> To get comfortable with the situation, you have a {{ training_round_seconds }} second round without payments, where a computer predecessor and successor click randomly. After the training, all participants in the ring are the humans identified in the Zoom meeting.
+        <b>Training:</b> To get comfortable with the situation, you have a {{ training_round_seconds }} second round without payments, where a computer predecessor and successor click randomly. After the training, all participants in the ring are the humans identified in the Zoom meeting.
     </p>
 
     <p>
