@@ -229,54 +229,43 @@ def live_request(player, data):
     from_revenue = 0
     transferred = False
 
+    # Accrue inventory holding costs to-date for both players, regardless of
+    # whether the transfer succeeds — otherwise the response would report a
+    # stale balance and the client display would jump up.
+    for p in (take_from_player, give_to_player):
+        last_update = p.field_maybe_none('last_inventory_update')
+        if last_update is None:
+            last_update = current_time
+        time_delta = current_time - last_update
+        holding_cost = time_delta * subsession.cost_per_second * p.inventory
+        p.total_inventory_cost += holding_cost
+        p.total_cost += holding_cost
+        p.balance -= holding_cost
+        p.last_inventory_update = current_time
+
     # charge click cost to requesting player unconditionally
     click_cost = subsession.cost_per_click
     give_to_player.balance -= click_cost
     give_to_player.total_cost += click_cost
     give_to_player.total_request_cost += click_cost
-    give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
 
     # Check if the take_from player has enough inventory
     if take_from_player.inventory >= units:
-        # transfer from player costs
-        from_last_update = take_from_player.last_inventory_update
-        from_time_delta = current_time - from_last_update
-        from_old_inventory = take_from_player.inventory
-        from_cost = from_time_delta * subsession.cost_per_second * from_old_inventory
-        take_from_player.total_inventory_cost += from_cost
-        take_from_player.total_cost += from_cost
-        
-        # transfer to player costs
-        to_last_update = give_to_player.last_inventory_update
-        to_time_delta = current_time - to_last_update
-        to_old_inventory = give_to_player.inventory
-        to_cost = to_time_delta * subsession.cost_per_second * to_old_inventory
-        give_to_player.total_inventory_cost += to_cost
-        give_to_player.total_cost += to_cost
-
-        # update inventory 
+        # update inventory
         take_from_player.inventory -= units
         take_from_player.total_items_sold += units
         give_to_player.inventory += units
-        
+
         # update balance and revenue
         from_revenue = units * subsession.price_per_unit
-        from_balance_change = from_revenue - from_cost
-        take_from_player.balance += from_balance_change
+        take_from_player.balance += from_revenue
         take_from_player.total_revenue += from_revenue
-        
-        to_balance_change = -1 * to_cost
-        give_to_player.balance += to_balance_change
-        
-        # update profit
-        take_from_player.total_profit = take_from_player.total_revenue - take_from_player.total_cost
-        give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
-        
-        # update last inventory update time
-        take_from_player.last_inventory_update = current_time
-        give_to_player.last_inventory_update = current_time
-        
+
         transferred = True
+
+    # update profit (always — costs may have changed even on failure)
+    take_from_player.total_profit = take_from_player.total_revenue - take_from_player.total_cost
+    give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
         
     # request record
     Requests.create(

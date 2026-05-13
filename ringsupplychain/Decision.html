@@ -190,6 +190,7 @@
                 start_game();
             });
         } else {
+            startTimer.style.display = "none";
             oTreeTimer.style.display = "block";
             start_game();
         }
@@ -220,9 +221,10 @@
         mydata.total_cost = data['to_cost'];
         mydata.total_revenue = data['to_revenue'];
         mydata.total_profit = data['to_profit'];
+        reset_tick_clock();
         update_display();
     }
-    
+
     function update_sender_data(data) {
         mydata.balance = data['from_balance'];
         mydata.inventory = data['from_inventory'];
@@ -230,6 +232,7 @@
         mydata.total_revenue = data['from_revenue'];
         mydata.total_profit = data['from_profit'];
         mydata.total_items_sold = data['from_revenue'] / js_vars.price_per_unit;
+        reset_tick_clock();
         update_display();
     }
 
@@ -352,6 +355,7 @@
             mydata.total_revenue = data['data']['revenue'];
             mydata.total_profit = data['data']['profit'];
             mydata.total_items_sold = data['data']['items_sold'];
+            reset_tick_clock();
             if (js_vars.show_info) {
                 othersdata.predecessor1_inventory = data["data"]["pre_inventory"];
                 // othersdata.successor1_inventory = data["data"]["suc_inventory"];
@@ -373,8 +377,27 @@
         prep_timer(delay);
     }
     
+    // Tracks wall-clock time of the last local tick / authoritative update so
+    // that holding-cost accrual uses real elapsed seconds instead of assuming
+    // the setInterval callback fires exactly once per second. setInterval is
+    // throttled/paused on backgrounded tabs, which otherwise causes the local
+    // balance to drift from the server and produces large jumps when a server
+    // response overwrites mydata.balance.
+    let last_tick_ms = null;
+
+    function reset_tick_clock() {
+        last_tick_ms = Date.now();
+    }
+
     function recalculate_balances() {
-        let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second;
+        let now = Date.now();
+        if (last_tick_ms === null) {
+            last_tick_ms = now;
+            return;
+        }
+        let dt = (now - last_tick_ms) / 1000;
+        last_tick_ms = now;
+        let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second * dt;
         mydata.balance -= cost;
         mydata.total_cost += cost;
         mydata.total_profit = mydata.total_revenue - mydata.total_cost;
@@ -389,15 +412,22 @@
     }
     
     // when ready
+    let balance_update_interval = null;
+    let auto_play_started = false;
+
     function start_game() {
         requestButton.disabled = false;
-        
-        window.setInterval(function () {
-            recalculate_balances();
-            update_display();
-        }, 1000);
-        
-        if (js_vars.auto_play) {
+        reset_tick_clock();
+
+        if (balance_update_interval === null) {
+            balance_update_interval = window.setInterval(function () {
+                recalculate_balances();
+                update_display();
+            }, 1000);
+        }
+
+        if (js_vars.auto_play && !auto_play_started) {
+            auto_play_started = true;
             auto_play_request(2, 0.5);
         }
     }
