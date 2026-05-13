@@ -179,21 +179,22 @@ function get_connector_length(num_elements, box_width) {
 }
 
 
-function draw_row(element, n, row_num, start_id, start_x, box_width, box_height, first_start_y, own_id) {
+function draw_row(element, n, row_num, start_id, start_x, box_width, box_height, first_start_y, own_id, labels) {
     let connector_length = get_connector_length(n, box_width);
     let start_y = first_start_y + row_num * 2 * box_height;
     for (let i = 0; i < n; i++) {
         let id = start_id + i + 1;
         let base_color = id == own_id ? "#bfbfbf" : "white";
         let x = start_x + connector_length + i * (connector_length + box_width);
-        draw_rect(element, `p${id}`, x, start_y, box_width, box_height, id, base_color);
+        let label = (labels && labels[id] !== undefined) ? labels[id] : id;
+        draw_rect(element, `p${id}`, x, start_y, box_width, box_height, label, base_color);
         draw_connector(element, start_x + i * (box_width + connector_length), start_y + box_height/2, connector_length, box_height);
     }
     // draw connectors between elements and at the end of items
     draw_connector(element, start_x + n * (box_width + connector_length), start_y + box_height/2, connector_length, box_height);
 }
 
-function draw_rows(element, n, own_id) {
+function draw_rows(element, n, own_id, labels) {
     let box_height = 50;
     let box_width = 100;
     let base_x = 30;
@@ -231,7 +232,7 @@ function draw_rows(element, n, own_id) {
             ne = remainder;
         }
         // draw row
-        draw_row(element, ne, i, start, start_x, box_width, box_height, first_start_y, own_id);
+        draw_row(element, ne, i, start, start_x, box_width, box_height, first_start_y, own_id, labels);
         
         // draw connectors between rows
         let connector_length = get_connector_length(ne, box_width);

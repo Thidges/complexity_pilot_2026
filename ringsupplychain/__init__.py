@@ -33,12 +33,14 @@ class Subsession(BaseSubsession):
     maximum_units = models.IntegerField()
     welcome_message = models.BooleanField(initial=False)
     emphasize_symmetry = models.BooleanField(initial=False)
+    package = models.StringField()
 
 class Group(BaseGroup):
     start_time = models.FloatField()
     group_size = models.IntegerField()
     treatment = models.StringField()
     show_info = models.BooleanField(initial=False)
+    show_chain = models.BooleanField(initial=False)
     initial_stock = models.IntegerField()
     initial_cash = models.CurrencyField()
 
@@ -110,14 +112,14 @@ def creating_session(subsession):
     cost_per_second = sess.config.get('cost_per_second', None)
     cost_per_click = sess.config.get('cost_per_click', None)
     price_per_unit = sess.config.get('price_per_unit', None)
-    show_chain = sess.config.get('show_chain', False)
     auto_play = sess.config.get('auto_play', False)
     welcome_message = sess.config.get('welcome_message', False)
+    package = sess.config.get('package', None)
        
     total_seconds = countdown_seconds + round_seconds
     training_total_seconds = countdown_seconds + training_round_seconds
     
-    if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds]):
+    if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds, package]):
         raise ValueError("session not configured correctly")
     
     # assign variables
@@ -128,7 +130,6 @@ def creating_session(subsession):
     subsession.training_round_seconds = training_round_seconds
     subsession.start_delay_seconds = start_delay_seconds
     subsession.leave_seconds = leave_seconds
-    subsession.show_chain = show_chain
     subsession.auto_play = auto_play
     subsession.request_timeout_seconds = request_timeout_seconds
     subsession.info_highlight_timeout_seconds = info_highlight_timeout_seconds
@@ -136,8 +137,8 @@ def creating_session(subsession):
     subsession.training_total_seconds = training_total_seconds
     subsession.countdown_seconds = countdown_seconds
     subsession.welcome_message = welcome_message
-
     subsession.maximum_units = 10
+    subsession.package = package
     
 def comp_request_cost_error_message(player, value):
     actual_cost = player.session.config.get('cost_per_click', 0) * 2
@@ -194,6 +195,7 @@ def live_inventory(player):
     # inventories
     predecessor = player.group.get_player_by_id(player.get_predecessor())
     successor = player.group.get_player_by_id(player.get_successor())
+    chain_inventory = {p.id_in_group: p.inventory for p in player.group.get_players()}
 
     resp = {
         'type': 'init_response',
@@ -205,7 +207,8 @@ def live_inventory(player):
             'profit': player.total_profit,
             'items_sold': player.total_items_sold,
             'pre_inventory': predecessor.inventory,
-            'suc_inventory': successor.inventory
+            'suc_inventory': successor.inventory,
+            'chain_inventory': chain_inventory,
         }
     }
     
@@ -329,7 +332,7 @@ def common_vars_for_template(player):
         'show_info': group.show_info,
         'treatment': group.treatment,
         'cost_per_click': subs.cost_per_click,
-        'show_chain': subs.show_chain,
+        'show_chain': group.show_chain,
         'auto_play': subs.auto_play,
         'round_seconds': subs.round_seconds,
         'total_seconds': subs.total_seconds,
@@ -464,18 +467,52 @@ class GroupMatching(WaitPage):
         players = subsession.get_players()
         shuffled_players = shuffled(players)
 
-        first = shuffled_players[0:5]
-        second = shuffled_players[5:10]
-        third = shuffled_players[10:20]
-        subsession.set_group_matrix([first, second, third])
+        package = subsession.package
+        n = len(shuffled_players)
+
+        if package == "5":
+            n_groups = n // 5
+            n_ni = n_groups // 2
+            n_ai = n_groups // 2
+            treatments = ['NI_5'] * n_ni + ['AI_5'] * n_ai
+            if n_groups % 2 == 1:
+                treatments.append(random.choice(['NI_5', 'AI_5']))
+        elif package == "10":
+            n_groups = n // 10
+            n_ni = n_groups // 2
+            n_ai = n_groups // 2
+            treatments = ['NI_10'] * n_ni + ['AI_10'] * n_ai
+            if n_groups % 2 == 1:
+                treatments.append(random.choice(['NI_10', 'AI_10']))
+        elif package in ("NI", "AI"):
+            num_10 = n // 10
+            remainder = n % 10
+            if remainder == 0 and num_10 > 0:
+                num_10 -= 1
+                remainder = 10
+            num_5 = remainder // 5
+            treatments = [f'{package}_10'] * num_10 + [f'{package}_5'] * num_5
+        else:
+            raise ValueError(f"Unknown package: {package}")
+
+        random.shuffle(treatments)
+
+        matrix = []
+        idx = 0
+        for t in treatments:
+            size = 5 if t.endswith('_5') else 10
+            matrix.append(shuffled_players[idx:idx + size])
+            idx += size
+
+        subsession.set_group_matrix(matrix)
 
         groups = subsession.get_groups()
-        groups[0].treatment = 'NI_5'
-        groups[1].treatment = 'PI_5'
-        groups[2].treatment = 'NI_10'
+        for g, t in zip(groups, treatments):
+            g.treatment = t
 
         for group in groups:
             group.show_info = TREATMENTS[group.treatment]['show_info']
+            group.show_chain = TREATMENTS[group.treatment]['show_chain']
             group.group_size = TREATMENTS[group.treatment]['players_per_group']
             group.initial_stock = TREATMENTS[group.treatment]['initial_stock']
             group.initial_cash = TREATMENTS[group.treatment]['initial_cash']
@@ -497,6 +534,7 @@ class GameInstructions(Page):
 
     def vars_for_template(player):
         sess = player.session
+        subs = player.subsession
         rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
         hundred_ecu = 100 * rwc_pp
         players_per_group = player.group.group_size
@@ -521,7 +559,8 @@ class GameInstructions(Page):
             'round_seconds': round_seconds,
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
             'participation_fee': sess.config.get('participation_fee', '0.00 EUR'),
-            'welcome_message': player.subsession.welcome_message,
+            'welcome_message': subs.welcome_message,
+            'emphasize_symmetry': subs.emphasize_symmetry,
         }
 
     @staticmethod
@@ -574,12 +613,14 @@ class Decision(Page):
     def js_vars(player):
         predecessor = player.group.get_player_by_id(player.get_predecessor())
         successor = player.group.get_player_by_id(player.get_successor())
+        chain_inventory = {p.id_in_group: p.inventory for p in player.group.get_players()}
 
         return {
             'own_id_in_group': player.id_in_group,
             'inventory_unit_cost_per_second': player.subsession.cost_per_second,
             'pre_inventory': predecessor.inventory,
             'suc_inventory': successor.inventory,
+            'chain_inventory': chain_inventory,
             **common_vars_for_template(player),
         }
     
@@ -625,8 +666,8 @@ class Results(Page):
 
 page_sequence = [
     GroupMatching,
-    GameInstructions,
-    TrainingRound,
+    # GameInstructions,
+    # TrainingRound,
     # TrainingFeedback,
     # TrainingWait,
     RoundPreface,

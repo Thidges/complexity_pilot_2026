@@ -107,7 +107,10 @@
     {{ if show_chain }}
         <div class="text-center">
             <svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>
-            <p class="small">Your position is highlighted in gray.</p>
+            <p class="small">
+                The numbers show the players' inventories.<br>
+                Your position is highlighted in gray.
+            </p>
         </div>
     {{ endif }}
 
@@ -308,6 +311,8 @@
         if (js_vars.show_info) {
             update_others_data(data);
         }
+        update_chain_box(data['from_player'], data['from_inventory']);
+        update_chain_box(data['to_player'], data['to_inventory']);
     }
     
     function send_request(units) {
@@ -352,7 +357,12 @@
                 // othersdata.successor1_inventory = data["data"]["suc_inventory"];
             }
             update_display();
-            // console.log(data['data']['chain_inventory']);
+            let ci = data['data']['chain_inventory'];
+            if (ci) {
+                for (let id in ci) {
+                    update_chain_box(id, ci[id]);
+                }
+            }
         }
     }
      
@@ -394,7 +404,14 @@
     
     const circle = document.getElementById("id_circle");
     if (js_vars.show_chain) {
-        draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group);
+        let chain_labels = js_vars.show_info ? js_vars.chain_inventory : null;
+        draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group, chain_labels);
+    }
+
+    function update_chain_box(id, value) {
+        if (!(js_vars.show_chain && js_vars.show_info)) return;
+        let el = document.getElementById(`p${id}_text`);
+        if (el) el.textContent = value;
     }
     
     requestButton.addEventListener("click", function () {

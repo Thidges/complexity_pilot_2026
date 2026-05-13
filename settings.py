@@ -22,114 +22,94 @@ TREATMENTS = dict(
         treatment="NI_5",
         players_per_group=5,
         initial_stock=2,
-        initial_cash=300,
-        show_info=False
+        initial_cash=400,
+        show_info=False,
+        show_chain=False
     ),
     NI_10 = dict(
         treatment="NI_10",
         players_per_group=10,
         initial_stock=2,
-        initial_cash=300,
-        show_info=False
+        initial_cash=400,
+        show_info=False,
+        show_chain=False
     ),
-    PI_5 = dict(
-        treatment="PI_5",
+    AI_5 = dict(
+        treatment="AI_5",
         players_per_group=5,
         initial_stock=2,
-        initial_cash=300,
-        show_info=True
+        initial_cash=400,
+        show_info=True,
+        show_chain=True
+    ),
+    AI_10 = dict(
+        treatment="AI_10",
+        players_per_group=10,
+        initial_stock=2,
+        initial_cash=400,
+        show_info=True,
+        show_chain=True
     )
 )
 
 
 SESSION_CONFIGS = [
-    # dict(
-    #     name="intro",
-    #     display_name="Introduction",
-    #     app_sequence=["intro"],
-    #     num_demo_participants=5,
-    #     **GAME_CONFIG
-    # ),
-    # dict(
-    #     name="questionnaire",
-    #     display_name="Final Questionnaire + Payments",
-    #     app_sequence=["questionnaires"],
-    #     num_demo_participants=1,
-    #     **GAME_CONFIG
-    # ),
-    # dict(
-    #     name="full_experiment_5",
-    #     display_name="Full Experiment, 5 demo participants",
-    #     app_sequence=[
-    #         "intro",
-    #         "ringsupplychain",
-    #         "questionnaires"
-    #     ],
-    #     num_demo_participants=5,
-    #     **GAME_CONFIG
-    # ),
-    # dict(
-    #     name="full_experiment",
-    #     display_name="Full Experiment, 10 demo participants",
-    #     app_sequence=[
-    #         "intro",
-    #         "ringsupplychain",
-    #         "questionnaires"
-    #     ],
-    #     num_demo_participants=10,
-    #     **GAME_CONFIG
-    # ),
-    # dict(
-    #     name="full_experiment_20",
-    #     display_name="Full Experiment, 20 demo participants",
-    #     app_sequence=[
-    #         "intro",
-    #         "ringsupplychain",
-    #         "questionnaires"
-    #     ],
-    #     num_demo_participants=20,
-    #     **GAME_CONFIG
-    # ),
     dict(
-        name="full_experiment",
-        display_name="1. Full Pilot Experiment - Use this!",
+        name="package_10t",
+        display_name="Package 10 Test",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
         ],
-        num_demo_participants=5,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
-    dict(
-        name="full_experiment_5_nc",
-        display_name="(DEMO 5 participants, no consent)",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        num_demo_participants=5,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
-    dict(
-        name="full_experiment_nc",
-        display_name="(DEMO 10 participants, no consent)",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
+        package="10",
         num_demo_participants=10,
         **GAME_CONFIG,
         welcome_message=True
     ),
     dict(
-        name="full_experiment_20_nc",
-        display_name="(DEMO 20 participants, no consent)",
+        name="package_5",
+        display_name="Package 5",
         app_sequence=[
             "ringsupplychain",
             "questionnaires"
         ],
+        package="5",
+        num_demo_participants=10,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="package_10",
+        display_name="Package 10",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="10",
+        num_demo_participants=20,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="package_ni",
+        display_name="Package NI",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="NI",
+        num_demo_participants=20,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="package_ai",
+        display_name="Package AI",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="AI",
         num_demo_participants=20,
         **GAME_CONFIG,
         welcome_message=True
