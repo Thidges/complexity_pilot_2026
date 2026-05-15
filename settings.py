@@ -55,6 +55,18 @@ TREATMENTS = dict(
 
 SESSION_CONFIGS = [
     dict(
+        name="test_config",
+        display_name="TestConfig",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="5",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
         name="package_10t",
         display_name="Package 10 Test",
         app_sequence=[

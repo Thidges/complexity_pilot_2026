@@ -592,6 +592,7 @@ class RoundPreface(Page):
         return common_vars_for_template(player)
 
 class JointStart(WaitPage):
+    body_text = "The main task begins as soon as all participants have completed the training round. Please wait."
     pass
 
 class Decision(Page):
@@ -655,8 +656,8 @@ class Results(Page):
 
 page_sequence = [
     GroupMatching,
-    # GameInstructions,
-    # TrainingRound,
+    GameInstructions,
+    TrainingRound,
     # TrainingFeedback,
     # TrainingWait,
     RoundPreface,
