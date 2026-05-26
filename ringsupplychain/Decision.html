@@ -335,14 +335,14 @@
     }
     
     function send_init() {
-        let current_time = new Date().getTime();
-        let start_time_proposal = current_time + 5000;
         liveSend({
             type: 'init',
         });
+        // No client-side timestamp — the server decides the start time in
+        // server time and broadcasts a delay. This signal just tells the
+        // server that this player has arrived on the Decision page.
         liveSend({
             type: 'start_time_proposal',
-            start_time: start_time_proposal
         });
     }
 
@@ -353,8 +353,8 @@
             live_update_status(data['data']);
         }
         if (data['type'] === 'start_time_decision') {
-            start_time_received(data.start_time);
-        } 
+            start_time_received(data.delay_ms);
+        }
         if (data['type'] === 'init_response') {
             mydata.balance = data['data']['balance'];
             mydata.inventory = data['data']['inventory'];
@@ -377,11 +377,9 @@
         }
     }
      
-    function start_time_received(start_time) {
-        let current_time = new Date().getTime();
-        let delay = start_time - current_time;
-        console.log('game start in ' + delay + ' ms');
-        prep_timer(delay);
+    function start_time_received(delay_ms) {
+        console.log('game start in ' + delay_ms + ' ms');
+        prep_timer(delay_ms);
     }
     
     // Tracks wall-clock time of the last local tick / authoritative update so

@@ -386,29 +386,31 @@ def finalize_round(group):
 
 def start_time_check(player: Player, data):
     current_time = time.time()
-    player.proposed_start_time = data['start_time']
+    # proposed_start_time is used purely as a "this player has arrived" flag.
+    # Do NOT use client-supplied absolute timestamps to set the group start
+    # time — a participant with a wrong device clock would otherwise push the
+    # countdown hours into the future for the whole group.
+    player.proposed_start_time = current_time
 
     subs = player.subsession
     group = player.group
     group_players = group.get_players()
-    proposed_start_times = list()
-    for p in group_players:
-        if p.field_maybe_none('proposed_start_time') is not None:
-            proposed_start_times.append(p.proposed_start_time)
+    arrived_count = sum(
+        1 for p in group_players
+        if p.field_maybe_none('proposed_start_time') is not None
+    )
 
-    if len(proposed_start_times) == group.group_size:
-        if player.group.field_maybe_none('start_time') is not None:
-            return {0: {
-                'type': 'start_time_decision',
-                'start_time': group.start_time
-            }}
+    if group.field_maybe_none('start_time') is not None:
+        # Late joiner / reload: respond only to this player with the remaining
+        # delay relative to the already-decided group start time.
+        delay_ms = max(0, int((group.start_time - current_time) * 1000))
+        return {player.id_in_group: {
+            'type': 'start_time_decision',
+            'delay_ms': delay_ms,
+        }}
 
-        decision_candidate = max(proposed_start_times)
-        if decision_candidate > current_time + subs.countdown_seconds:
-            selected_time = decision_candidate
-        else:
-            selected_time = current_time + subs.countdown_seconds
-
+    if arrived_count == group.group_size:
+        selected_time = current_time + subs.countdown_seconds
         group.start_time = selected_time
 
         for p in group_players:
@@ -432,10 +434,11 @@ def start_time_check(player: Player, data):
                 kind='init'
             )
 
+        delay_ms = max(0, int((selected_time - time.time()) * 1000))
         return {
             0: {
                 'type': 'start_time_decision',
-                'start_time': selected_time
+                'delay_ms': delay_ms,
             }
         }
     return None
