@@ -115,6 +115,7 @@ def creating_session(subsession):
     auto_play = sess.config.get('auto_play', False)
     welcome_message = sess.config.get('welcome_message', False)
     package = sess.config.get('package', None)
+    emphasize_symmetry = sess.config.get('emphasize_symmetry', False)
        
     total_seconds = countdown_seconds + round_seconds
     training_total_seconds = countdown_seconds + training_round_seconds
@@ -139,6 +140,7 @@ def creating_session(subsession):
     subsession.welcome_message = welcome_message
     subsession.maximum_units = 10
     subsession.package = package
+    subsession.emphasize_symmetry = emphasize_symmetry
     
 def comp_request_cost_error_message(player, value):
     actual_cost = player.session.config.get('cost_per_click', 0) * 2

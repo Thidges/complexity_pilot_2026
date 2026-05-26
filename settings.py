@@ -14,6 +14,7 @@ GAME_CONFIG = dict(
     maximum_units_in_play=10,
     show_chain=False,
     payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_0U6FdR5Qwaux0RE",
+    emphasize_symmetry=True
 )
 
 
@@ -54,30 +55,6 @@ TREATMENTS = dict(
 
 
 SESSION_CONFIGS = [
-    dict(
-        name="test_config",
-        display_name="TestConfig, 5 participants only, Package 5",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        package="5",
-        num_demo_participants=5,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
-    dict(
-        name="package_10t",
-        display_name="Test config for Package 10, 10 players.",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        package="10",
-        num_demo_participants=10,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
     dict(
         name="package_5",
         display_name="Package 5",
@@ -123,6 +100,30 @@ SESSION_CONFIGS = [
         ],
         package="AI",
         num_demo_participants=20,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="test_config",
+        display_name="TestConfig, 5 participants only, Package 5",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="5",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        welcome_message=True
+    ),
+    dict(
+        name="package_10t",
+        display_name="Test config for Package 10, 10 players.",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package="10",
+        num_demo_participants=10,
         **GAME_CONFIG,
         welcome_message=True
     )
