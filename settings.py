@@ -129,6 +129,23 @@ SESSION_CONFIGS = [
     )
 ]
 
+# one session config per treatment: all groups in the session play that treatment
+SESSION_CONFIGS += [
+    dict(
+        name=f"treatment_{key.lower()}",
+        display_name=f"Single treatment {key}",
+        app_sequence=[
+            "ringsupplychain",
+            "questionnaires"
+        ],
+        package=key,
+        num_demo_participants=t["players_per_group"],
+        **GAME_CONFIG,
+        welcome_message=True
+    )
+    for key, t in TREATMENTS.items()
+]
+
 # Rooms
 ROOMS = [
     dict(

@@ -12,7 +12,6 @@ class PlayerBot(Bot):
 
         yield GameInstructions, answers
         yield TrainingRound
-        yield TrainingFeedback
         yield RoundPreface
         yield Decision
         yield Results

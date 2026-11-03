@@ -122,7 +122,12 @@ def creating_session(subsession):
     
     if any(var is None for var in [cost_per_second, cost_per_click, price_per_unit, round_seconds, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds, package]):
         raise ValueError("session not configured correctly")
-    
+
+    if package in TREATMENTS:
+        size = TREATMENTS[package]['players_per_group']
+        if sess.num_participants % size != 0:
+            raise ValueError(f"Treatment {package} needs a multiple of {size} participants")
+
     # assign variables
     subsession.cost_per_second = cost_per_second
     subsession.cost_per_click = cost_per_click
@@ -464,7 +469,10 @@ class GroupMatching(WaitPage):
         package = subsession.package
         n = len(shuffled_players)
 
-        if package == "5":
+        if package in TREATMENTS:
+            size = TREATMENTS[package]['players_per_group']
+            treatments = [package] * (n // size)
+        elif package == "5":
             n_groups = n // 5
             n_ni = n_groups // 2
             n_ai = n_groups // 2
@@ -494,7 +502,7 @@ class GroupMatching(WaitPage):
         matrix = []
         idx = 0
         for t in treatments:
-            size = 5 if t.endswith('_5') else 10
+            size = TREATMENTS[t]['players_per_group']
             matrix.append(shuffled_players[idx:idx + size])
             idx += size
 

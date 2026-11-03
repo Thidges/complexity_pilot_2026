@@ -7,10 +7,8 @@ class PlayerBot(Bot):
         yield Questionnaire, {
             'gender': random.choice(['male', 'female', 'other', 'prefer_not_to_say']), 
             'birth_year': random.randint(1950, 2005), 
-            'education_level': random.choice(['high_school', 'bachelor', 'master', 'phd', 'other']),
             'risk_general': random.randint(1, 7),
             'instructions_understood': random.randint(1, 5),
-            'specific_strategy': True,
             'strategy_text': 'not much', 
             'comments': ''
         }
