@@ -10,6 +10,11 @@ class PlayerBot(Bot):
         if self.session.config.get('cost_per_click', 2) != 0:
             answers.update({'comp_revenue': self.session.config.get('price_per_unit', 0)})
 
+        report = vars_for_admin_report(self.subsession)
+        expect(report['unassigned'], 0)
+        expect(report['current_total'], len(self.subsession.get_groups()))
+        expect(sum(report['column_totals']), report['overall_total'])
+
         yield GameInstructions, answers
         yield TrainingRound
         yield RoundPreface

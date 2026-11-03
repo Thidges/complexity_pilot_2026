@@ -147,6 +147,59 @@ def creating_session(subsession):
     subsession.package = package
     subsession.emphasize_symmetry = emphasize_symmetry
     
+def vars_for_admin_report(subsession):
+    from otree.models import Session
+
+    treatment_names = list(TREATMENTS.keys())
+
+    # current session
+    current = {t: 0 for t in treatment_names}
+    unassigned = 0
+    for g in subsession.get_groups():
+        t = g.field_maybe_none('treatment')
+        if t is None:
+            unassigned += 1
+        else:
+            current[t] = current.get(t, 0) + 1
+
+    # whole dataset, excluding demo sessions: one row per session
+    sessions = {
+        s.id: s for s in Session.objects_filter(is_demo=False).order_by('id')
+    }
+    per_session = {}
+    for g in Group.objects_filter(Group.treatment != None):
+        if g.session_id not in sessions:
+            continue
+        counts = per_session.setdefault(g.session_id, {t: 0 for t in treatment_names})
+        counts[g.treatment] = counts.get(g.treatment, 0) + 1
+
+    column_totals = {t: 0 for t in treatment_names}
+    session_rows = []
+    for sid in sorted(per_session):
+        counts = per_session[sid]
+        sess = sessions[sid]
+        for t in treatment_names:
+            column_totals[t] += counts[t]
+        session_rows.append(
+            dict(
+                code=sess.code,
+                config_name=sess.config.get('name', ''),
+                counts=[counts[t] for t in treatment_names],
+                total=sum(counts.values()),
+            )
+        )
+
+    return dict(
+        package=subsession.package,
+        treatment_names=treatment_names,
+        current_counts=[current[t] for t in treatment_names],
+        current_total=sum(current.values()),
+        unassigned=unassigned,
+        session_rows=session_rows,
+        column_totals=[column_totals[t] for t in treatment_names],
+        overall_total=sum(column_totals.values()),
+    )
+
 def comp_request_cost_error_message(player, value):
     actual_cost = player.session.config.get('cost_per_click', 0) * 2
     if value < actual_cost:

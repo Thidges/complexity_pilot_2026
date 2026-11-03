@@ -1,0 +1,49 @@
+<h4>Groups per treatment, this session</h4>
+<p>Package: <strong>{{ package }}</strong></p>
+<table class="table table-striped" style="width: auto;">
+    <thead>
+        <tr>
+            {{ for t in treatment_names }}<th class="text-end">{{ t }}</th>{{ endfor }}
+            <th class="text-end">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            {{ for n in current_counts }}<td class="text-end">{{ n }}</td>{{ endfor }}
+            <th class="text-end">{{ current_total }}</th>
+        </tr>
+    </tbody>
+</table>
+{{ if unassigned }}
+<p class="text-muted">
+    {{ unassigned }} group(s) not yet assigned a treatment (players have not all passed the matching wait page).
+</p>
+{{ endif }}
+
+<h4 class="mt-4">Groups per treatment, all sessions (demo sessions excluded)</h4>
+<table class="table table-striped" style="width: auto;">
+    <thead>
+        <tr>
+            <th>Session</th>
+            <th>Config</th>
+            {{ for t in treatment_names }}<th class="text-end">{{ t }}</th>{{ endfor }}
+            <th class="text-end">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ for row in session_rows }}
+        <tr>
+            <td>{{ row.code }}</td>
+            <td>{{ row.config_name }}</td>
+            {{ for n in row.counts }}<td class="text-end">{{ n }}</td>{{ endfor }}
+            <td class="text-end">{{ row.total }}</td>
+        </tr>
+        {{ endfor }}
+        <tr>
+            <th>Total</th>
+            <th></th>
+            {{ for n in column_totals }}<th class="text-end">{{ n }}</th>{{ endfor }}
+            <th class="text-end">{{ overall_total }}</th>
+        </tr>
+    </tbody>
+</table>
