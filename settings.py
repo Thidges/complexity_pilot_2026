@@ -103,30 +103,30 @@ SESSION_CONFIGS = [
         **GAME_CONFIG,
         welcome_message=True
     ),
-    dict(
-        name="test_config",
-        display_name="TestConfig, 5 participants only, Package 5",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        package="5",
-        num_demo_participants=5,
-        **GAME_CONFIG,
-        welcome_message=True
-    ),
-    dict(
-        name="package_10t",
-        display_name="Test config for Package 10, 10 players.",
-        app_sequence=[
-            "ringsupplychain",
-            "questionnaires"
-        ],
-        package="10",
-        num_demo_participants=10,
-        **GAME_CONFIG,
-        welcome_message=True
-    )
+    # dict(
+    #     name="test_config",
+    #     display_name="TestConfig, 5 participants only, Package 5",
+    #     app_sequence=[
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     package="5",
+    #     num_demo_participants=5,
+    #     **GAME_CONFIG,
+    #     welcome_message=True
+    # ),
+    # dict(
+    #     name="package_10t",
+    #     display_name="Test config for Package 10, 10 players.",
+    #     app_sequence=[
+    #         "ringsupplychain",
+    #         "questionnaires"
+    #     ],
+    #     package="10",
+    #     num_demo_participants=10,
+    #     **GAME_CONFIG,
+    #     welcome_message=True
+    # )
 ]
 
 # one session config per treatment: all groups in the session play that treatment
