@@ -1,0 +1,42 @@
+{{ extends 'otree/WaitPage.html' }}
+
+{{ block title }}{{ title_text }}{{ endblock }}
+
+{{ block content }}
+    <p class="otree-wait-page__body">{{ body_text }}</p>
+
+    <script>
+        // Safety net. oTree moves participants off a wait page with a single
+        // websocket message; if that message is lost (e.g. the socket died
+        // silently during a long wait), the browser would stay here forever
+        // and block its whole group on the Decision page.
+        // So we also ask the server every few seconds whether this page is
+        // done: it answers a finished wait page with a redirect. We do not
+        // follow the redirect in the background (that would load the next
+        // page invisibly); we just reload, which takes the browser there.
+        (function () {
+            let checking = false;
+
+            function check_if_ready() {
+                if (checking) return;
+                checking = true;
+                fetch(window.location.href, {redirect: 'manual', cache: 'no-store'})
+                    .then(function (response) {
+                        if (response.type === 'opaqueredirect' || response.redirected) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        // network hiccup: just try again on the next round
+                    })
+                    .finally(function () {
+                        checking = false;
+                    });
+            }
+
+            // slightly random so that a group's checks do not all hit the
+            // server at the same moment
+            window.setInterval(check_if_ready, 14000 + Math.random() * 1000);
+        })();
+    </script>
+{{ endblock }}

@@ -13,6 +13,15 @@ class C(BaseConstants):
     NAME_IN_URL = 'ringsupplychain'
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1 
+    # Safety net only: the Decision page normally submits itself when the
+    # shared game clock (group.start_time + round_seconds) runs out. This
+    # timeout just makes sure nobody is stranded forever if the group never
+    # starts or a browser dies.
+    DECISION_BACKSTOP_SECONDS = 360
+    # Clients repeat the start handshake every 2 seconds (HANDSHAKE_RETRY_MS
+    # in Decision.html) until the game start is decided. A player counts as
+    # present only if their last handshake is at most this old.
+    HANDSHAKE_FRESH_SECONDS = 5
 
 
 class Subsession(BaseSubsession):
@@ -224,33 +233,38 @@ def comp_revenue_error_message(player, value):
         return "Check your calculation! The revenue you entered is too high."
     return None
 
+def game_window(group):
+    """Shared (start, end) of the game in server time, or None if not started."""
+    start = group.field_maybe_none('start_time')
+    if start is None:
+        return None
+    return start, start + group.subsession.round_seconds
+
+
+def accrue_holding_cost(player, now):
+    """Charge inventory holding cost up to `now`, but only for time inside
+    the shared game window, so waiting for the group, the countdown and
+    anything after the end are never charged."""
+    window = game_window(player.group)
+    if window is None:
+        return
+    start, end = window
+    now = min(max(now, start), end)
+    last_update = player.field_maybe_none('last_inventory_update')
+    if last_update is None or last_update < start:
+        last_update = start
+    if now > last_update:
+        cost = (now - last_update) * player.subsession.cost_per_second * player.inventory
+        player.total_inventory_cost += cost
+        player.total_cost += cost
+        player.balance -= cost
+        player.total_profit = player.total_revenue - player.total_cost
+        last_update = now
+    player.last_inventory_update = last_update
+
+
 def live_inventory(player):
-    # get current time
-    current_time = time.time()
-
-    # get time delta
-    last_inventory_time = player.field_maybe_none('last_inventory_update')
-    if last_inventory_time is None:
-        last_inventory_time = current_time
-    time_delta = current_time - last_inventory_time
-    
-
-    # calculate cost
-    old_inventory = player.inventory
-    inventory_cost = time_delta * player.subsession.cost_per_second * old_inventory
-
-    # update total costs
-    player.total_inventory_cost += inventory_cost
-    player.total_cost += inventory_cost
-
-    # update balance
-    player.balance -= inventory_cost
-
-    # update profit
-    player.total_profit = player.total_revenue - player.total_cost
-
-    # update last inventory update time
-    player.last_inventory_update = current_time
+    accrue_holding_cost(player, time.time())
 
     # inventories
     predecessor = player.group.get_player_by_id(player.get_predecessor())
@@ -286,6 +300,12 @@ def live_request(player, data):
     # get current time
     current_time = time.time()
 
+    # Requests only count inside the shared game window, whatever the
+    # client's own clock or timers say.
+    window = game_window(group)
+    if window is None or not (window[0] <= current_time <= window[1]):
+        return None
+
     from_revenue = 0
     transferred = False
 
@@ -293,15 +313,7 @@ def live_request(player, data):
     # whether the transfer succeeds — otherwise the response would report a
     # stale balance and the client display would jump up.
     for p in (take_from_player, give_to_player):
-        last_update = p.field_maybe_none('last_inventory_update')
-        if last_update is None:
-            last_update = current_time
-        time_delta = current_time - last_update
-        holding_cost = time_delta * subsession.cost_per_second * p.inventory
-        p.total_inventory_cost += holding_cost
-        p.total_cost += holding_cost
-        p.balance -= holding_cost
-        p.last_inventory_update = current_time
+        accrue_holding_cost(p, current_time)
 
     # charge click cost to requesting player unconditionally
     click_cost = subsession.cost_per_click
@@ -396,42 +408,12 @@ def common_vars_for_template(player):
     }
 
 def finalize_round(group):
-    subs = group.subsession
-    round_seconds = subs.round_seconds
-    cost_per_second = subs.cost_per_second
+    window = game_window(group)
     for player in group.get_players():
-        # first we figure out when the last update of the inventory took place relative to the expected end of round time
-        init_time = player.field_maybe_none('init_time')
-        if init_time is None:
-            init_time = 0
-        end_time = init_time + round_seconds
-        last_update = player.field_maybe_none('last_inventory_update')
-        if last_update is None:
-            last_update = 0
-        time_to_end_of_round = end_time - last_update
-        
-        # print('init_time', init_time)
-        # print('end_time', end_time)
-        # print('last_update', last_update)
-        # print('time_to_end_of_round', time_to_end_of_round)
-        # if there was time left between last update and the expected end of round, we need to account for costs.
-        if time_to_end_of_round > 0:
-            # calculate cost
-            old_inventory = player.inventory
-            cost = time_to_end_of_round * cost_per_second * old_inventory
-
-            # update total cost, balance, and profit
-            player.total_inventory_cost += cost
-            player.total_cost += cost
-            player.balance -= cost
-            player.total_profit = player.total_revenue - player.total_cost
-
-            
-            # print('old_inventory', old_inventory)
-            # print('cost', cost)
-            # print('total_cost', player.total_cost)
-            # print('balance', player.balance)
-            # print('total_profit', player.total_profit)
+        # charge holding cost for the time between the player's last update
+        # and the shared end of the game (no-op if the game never started)
+        if window is not None:
+            accrue_holding_cost(player, window[1])
 
         if player.balance > 0:
             player.payoff = player.balance
@@ -442,42 +424,54 @@ def finalize_round(group):
 
         
 
+def start_time_message(group, current_time):
+    start, end = game_window(group)
+    return {
+        'type': 'start_time_decision',
+        'delay_ms': max(0, int((start - current_time) * 1000)),
+        'end_ms': max(0, int((end - current_time) * 1000)),
+    }
+
+
 def start_time_check(player: Player, data):
+    """Handshake: clients keep sending 'start_time_proposal' until they get a
+    'start_time_decision'. The game starts only once every group member has
+    reported in; start and end are decided in server time and sent as delays,
+    so client clocks do not matter."""
     current_time = time.time()
-    # proposed_start_time is used purely as a "this player has arrived" flag.
-    # Do NOT use client-supplied absolute timestamps to set the group start
-    # time — a participant with a wrong device clock would otherwise push the
-    # countdown hours into the future for the whole group.
+    # proposed_start_time is the time of this player's most recent handshake,
+    # i.e. "last seen on the Decision page with a working connection".
+    # (init_time keeps the first arrival.)
     player.proposed_start_time = current_time
 
     subs = player.subsession
     group = player.group
-    group_players = group.get_players()
-    arrived_count = sum(
-        1 for p in group_players
-        if p.field_maybe_none('proposed_start_time') is not None
-    )
 
     if group.field_maybe_none('start_time') is not None:
-        # Late joiner / reload: respond only to this player with the remaining
-        # delay relative to the already-decided group start time.
-        delay_ms = max(0, int((group.start_time - current_time) * 1000))
-        return {player.id_in_group: {
-            'type': 'start_time_decision',
-            'delay_ms': delay_ms,
-        }}
+        # Start already decided (repeated handshake, missed broadcast, reload):
+        # answer only this player with the remaining delays.
+        return {player.id_in_group: start_time_message(group, current_time)}
 
-    if arrived_count == group.group_size:
+    # Start only when every group member is on the page right now: each one
+    # must have sent a handshake within the last few seconds. A player who is
+    # reloading or whose connection dropped stops sending handshakes, so the
+    # start is held back until they are back.
+    group_players = group.get_players()
+    present_count = sum(
+        1 for p in group_players
+        if (p.field_maybe_none('proposed_start_time') or 0)
+        >= current_time - C.HANDSHAKE_FRESH_SECONDS
+    )
+
+    if present_count == group.group_size:
         selected_time = current_time + subs.countdown_seconds
         group.start_time = selected_time
 
         for p in group_players:
-            if p.field_maybe_none('last_inventory_update') is None:
-                p.last_inventory_update = selected_time
+            p.last_inventory_update = selected_time
 
             Requests.create(
                 created=selected_time,
-                # init is triggered on page load, but the countdown starts after the page is loaded
                 session=subs,
                 group_id=p.group.id_in_subsession,
                 round=p.round_number,
@@ -492,13 +486,7 @@ def start_time_check(player: Player, data):
                 kind='init'
             )
 
-        delay_ms = max(0, int((selected_time - time.time()) * 1000))
-        return {
-            0: {
-                'type': 'start_time_decision',
-                'delay_ms': delay_ms,
-            }
-        }
+        return {0: start_time_message(group, time.time())}
     return None
 
 
@@ -658,12 +646,15 @@ class RoundPreface(Page):
         return common_vars_for_template(player)
 
 class JointStart(WaitPage):
+    # custom template: adds a periodic "am I done?" check as a fallback for
+    # a lost websocket message
+    template_name = 'ringsupplychain/JointStart.html'
     body_text = "The main task begins as soon as all participants have completed the training round. Please wait."
     pass
 
 class Decision(Page):
     def get_timeout_seconds(player):
-        return player.subsession.total_seconds
+        return C.DECISION_BACKSTOP_SECONDS
     
     @staticmethod
     def js_vars(player):

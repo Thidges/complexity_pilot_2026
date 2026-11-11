@@ -22,9 +22,18 @@
 {{ block content }}
 
     <div class="start-timer alert alert-info">
-        <p>The task starts in:
+        <p class="mb-0" id="start_timer_waiting">Waiting for all participants. The task starts shortly.</p>
+        <p class="mb-0" id="start_timer_countdown" style="display: none">The task starts in:
             <span style="font-weight: bold">
                 <span class="start-timer__time-left"></span>
+            </span>
+        </p>
+    </div>
+
+    <div class="game-timer alert alert-warning" style="display: none">
+        <p class="mb-0">Time left:
+            <span style="font-weight: bold">
+                <span class="game-timer__time-left"></span>
             </span>
         </p>
     </div>
@@ -176,33 +185,82 @@
         }
     }
     
-    oTreeTimer.style.display = "none";
-    // startTimer.style.display = "none";
+    // The oTree timer is only a long safety net (see DECISION_BACKSTOP_SECONDS).
+    // The real clock is the shared game clock below, so never show it.
+    if (oTreeTimer) oTreeTimer.style.display = "none";
     requestButton.disabled = true;
-    
-    function prep_timer(delay_milliseconds) {
-        let currentDate = new Date();
-        if (delay_milliseconds > 0) {
-            // startTimer.style.display = "block";
-            $('.start-timer__time-left').countdown(currentDate.valueOf() + delay_milliseconds)
-            .on('update.countdown', function (event) {
-                // %-N is "Total count of minutes till the end, non-padded"
-                // %S is seconds left
-                var format = '%-N:%S';
-                $(this).html(event.strftime(format))
-            })
-            .on('finish.countdown', function () {
-                startTimer.style.display = "none";
-                oTreeTimer.style.display = "block";
-                start_game();
-            });
+
+    // ---- shared game clock ------------------------------------------------
+    // The server decides start and end in server time and sends them as
+    // delays. We anchor them on performance.now() (monotonic), so a wrong or
+    // changing device clock cannot shift the game.
+    const HANDSHAKE_RETRY_MS = 2000;
+    const gameTimer = document.getElementsByClassName('game-timer')[0];
+    const startTimeLeft = document.getElementsByClassName('start-timer__time-left')[0];
+    const gameTimeLeft = document.getElementsByClassName('game-timer__time-left')[0];
+
+    let handshake_interval = null;
+    let clock_interval = null;
+    let start_at = null;   // performance.now() timestamps
+    let end_at = null;
+    let game_started = false;
+    let game_over = false;
+
+    function format_time_left(ms) {
+        let seconds = Math.max(0, Math.ceil(ms / 1000));
+        let rest = seconds % 60;
+        return Math.floor(seconds / 60) + ':' + (rest < 10 ? '0' : '') + rest;
+    }
+
+    function clock_tick() {
+        if (game_over || start_at === null) return;
+        let now = performance.now();
+        if (now >= end_at) {
+            end_game();
+            return;
+        }
+        if (now >= start_at) {
+            if (!game_started) start_game();
+            gameTimeLeft.textContent = format_time_left(end_at - now);
         } else {
-            startTimer.style.display = "none";
-            oTreeTimer.style.display = "block";
-            start_game();
+            startTimeLeft.textContent = format_time_left(start_at - now);
         }
     }
-    
+
+    function start_time_received(delay_ms, end_ms) {
+        // The decision can arrive more than once (broadcast plus the answer
+        // to our own repeated handshake); only the first one counts.
+        if (start_at !== null) return;
+        let now = performance.now();
+        start_at = now + delay_ms;
+        end_at = now + end_ms;
+
+        if (handshake_interval !== null) {
+            window.clearInterval(handshake_interval);
+            handshake_interval = null;
+        }
+
+        document.getElementById('start_timer_waiting').style.display = "none";
+        document.getElementById('start_timer_countdown').style.display = "block";
+
+        // exact timers for the two events, plus a ticking interval that
+        // updates the display and acts as a fallback for both
+        window.setTimeout(clock_tick, delay_ms);
+        window.setTimeout(clock_tick, end_ms);
+        clock_interval = window.setInterval(clock_tick, 200);
+        clock_tick();
+    }
+
+    function end_game() {
+        if (game_over) return;
+        game_over = true;
+        requestButton.disabled = true;
+        if (clock_interval !== null) window.clearInterval(clock_interval);
+        if (balance_update_interval !== null) window.clearInterval(balance_update_interval);
+        gameTimeLeft.textContent = format_time_left(0);
+        document.getElementById('form').submit();
+    }
+
     let mydata = {
         "inventory": js_vars.inventory,
         "balance": js_vars.balance,
@@ -217,6 +275,7 @@
         requestButton.disabled = true;
         requestButton.innerHTML = "Please Wait";
         setTimeout(function() {
+            if (game_over) return;
             requestButton.disabled = false;
             requestButton.innerHTML = js_vars.cost_per_click > 0 ? `Request a Unit (-${js_vars.cost_per_click} ECU)` : 'Request a Unit';
         }, timeout_seconds * 1000);
@@ -338,9 +397,17 @@
         liveSend({
             type: 'init',
         });
-        // No client-side timestamp — the server decides the start time in
-        // server time and broadcasts a delay. This signal just tells the
-        // server that this player has arrived on the Decision page.
+        // Handshake: tell the server this player has arrived on the Decision
+        // page. No client-side timestamp — the server decides start and end
+        // in server time and answers with delays. We keep repeating it until
+        // the decision arrives, so a missed broadcast or a socket that was
+        // down for a moment cannot leave this player behind.
+        send_handshake();
+        handshake_interval = window.setInterval(send_handshake, HANDSHAKE_RETRY_MS);
+    }
+
+    function send_handshake() {
+        if (start_at !== null) return;
         liveSend({
             type: 'start_time_proposal',
         });
@@ -353,7 +420,7 @@
             live_update_status(data['data']);
         }
         if (data['type'] === 'start_time_decision') {
-            start_time_received(data.delay_ms);
+            start_time_received(data.delay_ms, data.end_ms);
         }
         if (data['type'] === 'init_response') {
             mydata.balance = data['data']['balance'];
@@ -377,11 +444,6 @@
         }
     }
      
-    function start_time_received(delay_ms) {
-        console.log('game start in ' + delay_ms + ' ms');
-        prep_timer(delay_ms);
-    }
-    
     // Tracks wall-clock time of the last local tick / authoritative update so
     // that holding-cost accrual uses real elapsed seconds instead of assuming
     // the setInterval callback fires exactly once per second. setInterval is
@@ -411,6 +473,7 @@
     function auto_play_request(mean, stdev) {
         let random = getNormallyDistributedRandomNumber(mean, stdev);
         window.setTimeout(function() {
+            if (game_over) return;
             send_request(1);
             auto_play_request(mean, stdev)
         }, random * 1000);
@@ -421,6 +484,10 @@
     let auto_play_started = false;
 
     function start_game() {
+        if (game_started || game_over) return;
+        game_started = true;
+        startTimer.style.display = "none";
+        gameTimer.style.display = "block";
         requestButton.disabled = false;
         reset_tick_clock();
 
@@ -450,6 +517,7 @@
     }
     
     requestButton.addEventListener("click", function () {
+        if (!game_started || game_over) return;
         send_request(1);
         timeout_request_button(js_vars.request_button_timeout_seconds);
     });
