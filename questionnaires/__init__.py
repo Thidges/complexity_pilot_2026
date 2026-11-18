@@ -27,7 +27,7 @@ class Player(BasePlayer):
         ('prefer_not_to_say', 'prefer not to tell')])
     birth_year = models.IntegerField(
         label="In which year are you born?",
-        choices=list(range(2005, 1900, -1)))
+        choices=list(range(2010, 1900, -1)))
     # age = models.IntegerField(label="How old are you?", min=16)
     #student_or_working = models.StringField(label="Are you currently a student or working?", widget=widgets.RadioSelect, choices=[
         #('student', 'student'),
